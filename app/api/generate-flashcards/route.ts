@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import ytdl from "ytdl-core";
-import fs from "fs";
-import { file as tmpFile } from "tmp-promise";
+import axios from "axios";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -35,118 +34,85 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      // Get video info first to check duration and availability
-      console.log("Getting video info...");
-      const info = await ytdl.getInfo(value);
-      const durationSeconds = parseInt(info.videoDetails.lengthSeconds);
-      const durationMinutes = Math.round(durationSeconds / 60);
-      
-      console.log(`Video duration: ${durationMinutes} minutes`);
-      
-      if (durationSeconds > 1800) { // 30 minutes
-        return NextResponse.json({ 
-          error: "Video is too long (over 30 minutes). Please try a shorter video for better processing speed." 
-        }, { status: 400 });
+      const transcriptApiKey = process.env.TRANSCRIPT_API_KEY;
+      if (!transcriptApiKey) {
+        return NextResponse.json({ error: "TranscriptAPI key is not configured." }, { status: 500 });
       }
 
-      const { path, cleanup } = await tmpFile({ postfix: ".webm" });
+      console.log("Fetching transcript from TranscriptAPI...");
       
-      try {
-        console.log("Starting YouTube download...");
-        
-        // Use a more aggressive timeout based on video length
-        const timeoutMs = Math.max(60000, durationMinutes * 15000); // At least 1 min, or 15sec per minute of video
-        console.log(`Setting timeout to ${timeoutMs / 1000} seconds`);
-        
-        const downloadPromise = new Promise<void>((resolve, reject) => {
-          const stream = ytdl(value, { 
-            filter: "audioonly",
-            quality: "lowestaudio",
-            requestOptions: {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-              }
-            }
-          });
-          
-          const writeStream = fs.createWriteStream(path);
-          stream.pipe(writeStream);
-          
-          stream.on("error", (err) => {
-            console.error("YouTube stream error:", err);
-            reject(new Error(`Download failed: ${err.message}`));
-          });
-          
-          writeStream.on("error", (err) => {
-            console.error("File write error:", err);
-            reject(new Error(`File write failed: ${err.message}`));
-          });
-          
-          writeStream.on("close", () => {
-            console.log("YouTube download completed");
-            resolve();
-          });
-        });
-
-        const timeoutPromise = new Promise<void>((_, reject) => 
-          setTimeout(() => reject(new Error(`Download timeout after ${timeoutMs / 1000} seconds. Video may be too long or have connection issues.`)), timeoutMs)
-        );
-
-        await Promise.race([downloadPromise, timeoutPromise]);
-
-        // Check if file was created and has content
-        const stats = fs.statSync(path);
-        console.log("Downloaded file size:", stats.size, "bytes");
-        
-        if (stats.size === 0) {
-          throw new Error("Downloaded file is empty - video may be private, age-restricted, or unavailable");
+      // Call TranscriptAPI to get the transcript
+      const transcriptResponse = await axios.get(
+        `https://transcriptapi.com/api/v2/youtube/transcript`,
+        {
+          params: {
+            video_url: value
+          },
+          headers: {
+            'Authorization': `Bearer ${transcriptApiKey}`
+          },
+          timeout: 120000 // 2 minutes timeout
         }
+      );
 
-        if (stats.size < 1000) { // Less than 1KB
-          throw new Error("Downloaded file is too small - video may have no audio or be very short");
-        }
-
-        console.log("Starting Whisper transcription...");
-        
-        // 2. Transcribe with Whisper
-        const audioStream = fs.createReadStream(path);
-        const whisperRes = await openai.audio.transcriptions.create({
-          file: audioStream,
-          model: "whisper-1",
-          response_format: "text",
-          language: "en"
-        });
-        
-        console.log("Transcription completed, length:", whisperRes.length);
-        
-        transcript = whisperRes;
-        
-        if (!transcript || transcript.trim().length === 0) {
-          throw new Error("No speech could be transcribed from this video. The video may be music-only or have very unclear audio.");
-        }
-
-        if (transcript.trim().length < 50) {
-          console.log("Short transcript:", transcript);
-          throw new Error("Very little speech detected. The video may be mostly music or have poor audio quality.");
-        }
-        
-        prompt = `Create Anki flashcards from this YouTube video transcript:\n\n${transcript}\n\nYouTube URL: ${value}`;
-        
-      } finally {
-        cleanup();
+      console.log("TranscriptAPI response received");
+      console.log("Response data:", JSON.stringify(transcriptResponse.data).substring(0, 200));
+      
+      // Extract transcript text from response
+      // The API returns: { video_id, language, transcript: [{ text, start, duration }, ...] }
+      if (transcriptResponse.data.transcript && Array.isArray(transcriptResponse.data.transcript)) {
+        // Combine all transcript segments into a single text
+        transcript = transcriptResponse.data.transcript
+          .map((segment: any) => segment.text || '')
+          .filter((text: string) => text.trim().length > 0)
+          .join(' ');
+      } else if (typeof transcriptResponse.data === 'string') {
+        transcript = transcriptResponse.data;
+      } else if (transcriptResponse.data.text) {
+        transcript = transcriptResponse.data.text;
+      } else if (Array.isArray(transcriptResponse.data) && transcriptResponse.data.length > 0) {
+        // If it's an array of transcript segments, combine them
+        transcript = transcriptResponse.data.map((segment: any) => 
+          segment.text || segment.transcript || ''
+        ).join(' ');
+      } else {
+        console.error("Unexpected API response format:", transcriptResponse.data);
+        throw new Error("Unexpected transcript format from API");
       }
+      
+      if (!transcript || transcript.trim().length === 0) {
+        throw new Error("No speech could be transcribed from this video. The video may be music-only or have very unclear audio.");
+      }
+
+      if (transcript.trim().length < 50) {
+        console.log("Short transcript:", transcript);
+        throw new Error("Very little speech detected. The video may be mostly music or have poor audio quality.");
+      }
+      
+      console.log("Transcription completed, length:", transcript.length);
+      prompt = `Create Anki flashcards from this YouTube video transcript:\n\n${transcript}\n\nYouTube URL: ${value}`;
+      
     } catch (err: any) {
       console.error("YouTube processing error:", err);
       
       let errorMessage = "Failed to process YouTube video: ";
-      if (err.message.includes("timeout")) {
-        errorMessage += "Processing timed out. This usually happens with longer videos or slow connections. Try a shorter video (under 10 minutes).";
-      } else if (err.message.includes("private") || err.message.includes("unavailable") || err.message.includes("age-restricted")) {
-        errorMessage += "Video is private, unavailable, age-restricted, or region-blocked.";
+      if (err.response) {
+        // API error response
+        const status = err.response.status;
+        const data = err.response.data;
+        if (status === 401 || status === 403) {
+          errorMessage += "Authentication failed. Please check your TranscriptAPI key.";
+        } else if (status === 404) {
+          errorMessage += "Video not found or transcript unavailable.";
+        } else if (status === 429) {
+          errorMessage += "Rate limit exceeded. Please try again later.";
+        } else {
+          errorMessage += data?.message || data?.error || `API error (${status})`;
+        }
+      } else if (err.message.includes("timeout")) {
+        errorMessage += "Processing timed out. Please try again or use a shorter video.";
       } else if (err.message.includes("transcribed") || err.message.includes("speech")) {
         errorMessage += "No clear speech detected. Try a video with clear narration or dialogue.";
-      } else if (err.message.includes("Download failed")) {
-        errorMessage += "Could not download video. It may be protected or have streaming restrictions.";
       } else {
         errorMessage += err.message || "Unknown error occurred.";
       }
