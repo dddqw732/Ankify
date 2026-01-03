@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
 export async function POST(request: NextRequest) {
   try {
     const { title, description, flashcards, userId } = await request.json()
@@ -19,6 +16,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase client with server-side auth
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { error: 'Supabase configuration is missing' },
+        { status: 500 }
+      )
+    }
+    
     const supabase = createSupabaseClient(supabaseUrl, serviceRoleKey)
     
     // For now, skip auth verification since we have the userId
