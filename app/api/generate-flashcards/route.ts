@@ -14,6 +14,7 @@ const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator that he
 Output Format:
 - Do not have the first row being "Question" and "Answer".
 - Each flashcard should be on a new line and use the pipe separator | to separate the question and answer.
+- Do not number the cards or add prefixes like "Card 1:".
 - When writing math, wrap any math with the \\( ... \\) tags [eg, \\( a^2+b^2=c^2 \\) ] . By default this is inline math. For block math, use \\[ ... \\]. Decide when formatting each card.
 - When writing chemistry equations, use the format \\( \\ce{C6H12O6 + 6O2 -> 6H2O + 6CO2} \\) where the \\ce is required for MathJax chemistry.`;
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   if (type === "youtube") {
     console.log("Processing YouTube URL:", value);
-    
+
     // Validate YouTube URL
     if (!ytdl.validateURL(value)) {
       return NextResponse.json({ error: "Invalid YouTube URL. Please provide a valid YouTube video link." }, { status: 400 });
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
       }
 
       console.log("Fetching transcript from TranscriptAPI...");
-      
+
       // Call TranscriptAPI to get the transcript
       const transcriptResponse = await axios.get(
         `https://transcriptapi.com/api/v2/youtube/transcript`,
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
 
       console.log("TranscriptAPI response received");
       console.log("Response data:", JSON.stringify(transcriptResponse.data).substring(0, 200));
-      
+
       // Extract transcript text from response
       // The API returns: { video_id, language, transcript: [{ text, start, duration }, ...] }
       if (transcriptResponse.data.transcript && Array.isArray(transcriptResponse.data.transcript)) {
@@ -70,14 +71,14 @@ export async function POST(req: NextRequest) {
         transcript = transcriptResponse.data.text;
       } else if (Array.isArray(transcriptResponse.data) && transcriptResponse.data.length > 0) {
         // If it's an array of transcript segments, combine them
-        transcript = transcriptResponse.data.map((segment: any) => 
+        transcript = transcriptResponse.data.map((segment: any) =>
           segment.text || segment.transcript || ''
         ).join(' ');
       } else {
         console.error("Unexpected API response format:", transcriptResponse.data);
         throw new Error("Unexpected transcript format from API");
       }
-      
+
       if (!transcript || transcript.trim().length === 0) {
         throw new Error("No speech could be transcribed from this video. The video may be music-only or have very unclear audio.");
       }
@@ -86,13 +87,13 @@ export async function POST(req: NextRequest) {
         console.log("Short transcript:", transcript);
         throw new Error("Very little speech detected. The video may be mostly music or have poor audio quality.");
       }
-      
+
       console.log("Transcription completed, length:", transcript.length);
       prompt = `Create Anki flashcards from this YouTube video transcript:\n\n${transcript}\n\nYouTube URL: ${value}`;
-      
+
     } catch (err: any) {
       console.error("YouTube processing error:", err);
-      
+
       let errorMessage = "Failed to process YouTube video: ";
       if (err.response) {
         // API error response
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
       } else {
         errorMessage += err.message || "Unknown error occurred.";
       }
-      
+
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
   } else {

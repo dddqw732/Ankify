@@ -25,16 +25,36 @@ export default function ConvertPage() {
 
   function parseFlashcards(text: string): Flashcard[] {
     // Parse the AI response which should be in Anki format (question|answer per line)
-    const lines = text.split('\n').filter(line => line.trim() && line.includes('|'));
+    const lines = text.split('\n').filter(line => line.trim());
     const cards: Flashcard[] = [];
     
     for (const line of lines) {
-      const pipeIndex = line.indexOf('|');
-      if (pipeIndex > 0 && pipeIndex < line.length - 1) {
-        const question = line.substring(0, pipeIndex).trim();
-        const answer = line.substring(pipeIndex + 1).trim();
-        if (question && answer) {
-          cards.push({ question, answer });
+      if (line.includes('|')) {
+        const parts = line.split('|').map(p => p.trim());
+        
+        if (parts.length >= 3) {
+          // Format could be: "Card 1 | Question | Answer"
+          const firstPart = parts[0].toLowerCase();
+          if (firstPart.match(/^(card\s*\d+|\d+[\.)]?)$/)) {
+            cards.push({ 
+              question: parts[1], 
+              answer: parts.slice(2).join('|').trim() 
+            });
+            continue;
+          }
+        }
+        
+        if (parts.length >= 2) {
+          // Format: "Question | Answer" or "Card 1: Question | Answer"
+          let question = parts[0];
+          const answer = parts.slice(1).join('|').trim();
+          
+          // Clean up "Card 1: " or "1. " from the start of the question
+          question = question.replace(/^(?:card\s*\d+[:.]?\s*|\d+[\.):]\s*)/i, '');
+          
+          if (question && answer) {
+            cards.push({ question, answer });
+          }
         }
       }
     }
