@@ -3,8 +3,6 @@ import OpenAI from "openai";
 import ytdl from "ytdl-core";
 import axios from "axios";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator that helps students create flashcards that help them remember facts, concepts, and ideas from videos. You will be given a video or document or snippet.
 
 1. Identify key high-level concepts and ideas presented, including relevant equations. If the video is math or physics-heavy, focus on concepts. If the video isn't heavy on concepts, focus on facts.
@@ -124,6 +122,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      return NextResponse.json({ error: "OpenAI API key is not configured." }, { status: 500 });
+    }
+
+    const openai = new OpenAI({ apiKey: openaiApiKey });
     console.log("Starting OpenAI completion...");
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
