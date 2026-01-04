@@ -5,12 +5,17 @@ import type { NextRequest } from 'next/server'
 export async function middleware(req: NextRequest) {
     const res = NextResponse.next()
 
-    // Create a Supabase client configured to use cookies
-    const supabase = createMiddlewareClient({ req, res })
+    try {
+        // Create a Supabase client configured to use cookies
+        const supabase = createMiddlewareClient({ req, res })
 
-    // Refresh session if expired - required for Server Components
-    // https://supabase.com/docs/guides/auth/auth-helpers/nextjs#managing-session-with-middleware
-    await supabase.auth.getSession()
+        // Refresh session if expired - required for Server Components
+        await supabase.auth.getSession()
+    } catch (e) {
+        // In case of Supabase connection error (e.g. missing env vars), 
+        // we suppress the crash so the app can still serve static pages or public routes.
+        console.error("Middleware Auth Error:", e)
+    }
 
     return res
 }
