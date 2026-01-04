@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import ytdl from "ytdl-core";
+
 import axios from "axios";
 
 const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator that helps students create flashcards that help them remember facts, concepts, and ideas from videos. You will be given a video or document or snippet.
@@ -18,6 +18,10 @@ Output Format:
 - When writing math, wrap any math with the \\( ... \\) tags [eg, \\( a^2+b^2=c^2 \\) ] . By default this is inline math. For block math, use \\[ ... \\]. Decide when formatting each card.
 - When writing chemistry equations, use the format \\( \\ce{C6H12O6 + 6O2 -> 6H2O + 6CO2} \\) where the \\ce is required for MathJax chemistry.`;
 
+
+
+export const maxDuration = 60; // Allow 60 seconds for execution (Vercel Pro/Hobby limits apply)
+
 export async function POST(req: NextRequest) {
   const { type, value } = await req.json();
 
@@ -28,9 +32,11 @@ export async function POST(req: NextRequest) {
     console.log("Processing YouTube URL:", value);
 
     // Validate YouTube URL
-    if (!ytdl.validateURL(value)) {
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+    if (!youtubeRegex.test(value)) {
       return NextResponse.json({ error: "Invalid YouTube URL. Please provide a valid YouTube video link." }, { status: 400 });
     }
+
 
     try {
       const transcriptApiKey = process.env.TRANSCRIPT_API_KEY;

@@ -24,69 +24,44 @@ export default function ConvertPage() {
   const [saving, setSaving] = useState(false);
 
   function parseFlashcards(text: string): Flashcard[] {
-    // Parse the AI response which should be in Anki format (question|answer per line)
     const lines = text.split('\n').filter(line => line.trim());
     const cards: Flashcard[] = [];
-    
+
     for (const line of lines) {
       if (line.includes('|')) {
         const parts = line.split('|').map(p => p.trim());
-        
+
         if (parts.length >= 3) {
-          // Format could be: "Card 1 | Question | Answer"
           const firstPart = parts[0].toLowerCase();
           if (firstPart.match(/^(card\s*\d+|\d+[\.)]?)$/)) {
-            cards.push({ 
-              question: parts[1], 
-              answer: parts.slice(2).join('|').trim() 
+            cards.push({
+              question: parts[1],
+              answer: parts.slice(2).join('|').trim()
             });
             continue;
           }
         }
-        
+
         if (parts.length >= 2) {
-          // Format: "Question | Answer" or "Card 1: Question | Answer"
           let question = parts[0];
           const answer = parts.slice(1).join('|').trim();
-          
-          // Clean up "Card 1: " or "1. " from the start of the question
           question = question.replace(/^(?:card\s*\d+[:.]?\s*|\d+[\.):]\s*)/i, '');
-          
+
           if (question && answer) {
             cards.push({ question, answer });
           }
         }
       }
     }
-    
-    // Fallback: if no pipe-separated cards found, try the old format
+
     if (cards.length === 0) {
-      const fallbackLines = text.split('\n').filter(line => line.trim());
-      let currentQuestion = '';
-      let currentAnswer = '';
-      
-      for (const line of fallbackLines) {
-        if (line.match(/^(\d+\.|\*|-|Q:|Question:)/i)) {
-          if (currentQuestion && currentAnswer) {
-            cards.push({ question: currentQuestion.trim(), answer: currentAnswer.trim() });
-          }
-          currentQuestion = line.replace(/^(\d+\.|\*|-|Q:|Question:)/i, '').trim();
-          currentAnswer = '';
-        } else if (line.match(/^(A:|Answer:)/i)) {
-          currentAnswer = line.replace(/^(A:|Answer:)/i, '').trim();
-        } else if (currentQuestion && !currentAnswer) {
-          currentQuestion += ' ' + line.trim();
-        } else if (currentAnswer) {
-          currentAnswer += ' ' + line.trim();
-        }
-      }
-      
-      if (currentQuestion && currentAnswer) {
-        cards.push({ question: currentQuestion.trim(), answer: currentAnswer.trim() });
+      // Fallback logic could go here if needed
+      if (text.trim()) {
+        cards.push({ question: "Generated Content", answer: text });
       }
     }
-    
-    return cards.length > 0 ? cards : [{ question: "Generated Content", answer: text }];
+
+    return cards;
   }
 
   async function handleGenerate() {
@@ -95,7 +70,7 @@ export default function ConvertPage() {
     setError(null);
     setCurrentCard(0);
     setIsFlipped(false);
-    
+
     try {
       const res = await fetch("/api/generate-flashcards", {
         method: "POST",
@@ -105,14 +80,15 @@ export default function ConvertPage() {
           value: mode === "text" ? text : youtubeUrl,
         }),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to generate flashcards");
       }
-      
+
       const data = await res.json();
       const cards = parseFlashcards(data.result || "");
+      if (cards.length === 0) throw new Error("No flashcards could be generated from the content.");
       setFlashcards(cards);
     } catch (e: any) {
       setError(e.message || "Unknown error");
@@ -143,7 +119,6 @@ export default function ConvertPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save flashcards");
-      // Redirect to dashboard to view the new set
       router.push("/dashboard");
     } catch (e: any) {
       alert(e.message || "Error saving flashcards");
@@ -154,11 +129,7 @@ export default function ConvertPage() {
 
   function downloadAnkiFile() {
     if (flashcards.length === 0) return;
-    
-    const ankiContent = flashcards
-      .map(card => `${card.question}|${card.answer}`)
-      .join('\n');
-    
+    const ankiContent = flashcards.map(card => `${card.question}|${card.answer}`).join('\n');
     const blob = new Blob([ankiContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -169,22 +140,22 @@ export default function ConvertPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
-      {/* Animated Gradient Blobs */}
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20 pb-10">
+      {/* Background Blobs */}
       <motion.div
-        className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-400 opacity-20 rounded-full blur-3xl z-0"
+        className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500 opacity-20 rounded-full blur-3xl z-0"
         animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
         transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-400 opacity-15 rounded-full blur-3xl z-0"
+        className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500 opacity-15 rounded-full blur-3xl z-0"
         animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
         transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
       />
-      
+
       {/* Top Navigation */}
       <header className="absolute top-4 left-4 z-20">
-        <Link href="/dashboard" className="flex items-center gap-2 text-gray-300 hover:text-white bg-gray-800/60 px-3 py-2 rounded-lg border border-gray-700/50 backdrop-blur-sm">
+        <Link href="/dashboard" className="glass flex items-center gap-2 text-gray-300 hover:text-white px-4 py-2 rounded-full transition-all hover:bg-white/10">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
@@ -198,38 +169,38 @@ export default function ConvertPage() {
         transition={{ duration: 0.7, ease: "easeOut" }}
         className="w-full max-w-xl z-10"
       >
-        <div className="bg-gray-800/80 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 md:p-12 flex flex-col gap-8 border border-gray-700/50 relative">
+        <div className="glass-card rounded-3xl p-8 md:p-12 flex flex-col gap-8 relative">
           <h1 className="text-2xl md:text-3xl font-bold text-white text-center mb-2 drop-shadow-xl">
-            Convert Content to Smart Flashcards
+            Convert Content to <span className="text-blue-400">Flashcards</span>
           </h1>
-          
+
           {/* Tabs */}
-          <div className="flex justify-center gap-2 mb-4">
+          <div className="flex justify-center gap-2 mb-4 bg-black/20 p-1 rounded-full w-fit mx-auto">
             <button
-              className={`px-5 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-400/60 ${mode === "text" ? "bg-blue-600 text-white shadow-lg scale-105" : "bg-gray-700/60 text-gray-300 hover:bg-gray-600/80"}`}
+              className={`px-6 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none ${mode === "text" ? "bg-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white"}`}
               onClick={() => setMode("text")}
             >
               Text Input
             </button>
             <button
-              className={`px-5 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-400/60 ${mode === "youtube" ? "bg-blue-600 text-white shadow-lg scale-105" : "bg-gray-700/60 text-gray-300 hover:bg-gray-600/80"}`}
+              className={`px-6 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none ${mode === "youtube" ? "bg-red-600 text-white shadow-lg" : "text-gray-400 hover:text-white"}`}
               onClick={() => setMode("youtube")}
             >
-              YouTube Link
+              YouTube
             </button>
           </div>
-          
+
           {/* Input Area */}
           <AnimatePresence mode="wait" initial={false}>
             {mode === "text" ? (
               <motion.textarea
                 key="text"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="w-full min-h-[160px] rounded-xl border border-gray-600/40 bg-gray-700/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 p-4 text-gray-100 text-base resize-none transition-all shadow-inner placeholder-gray-400"
-                placeholder="Paste or type your long text here..."
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="w-full min-h-[160px] rounded-2xl border border-white/10 bg-slate-900/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent p-5 text-gray-100 text-base resize-none transition-all shadow-inner placeholder-gray-500"
+                placeholder="Paste your lecture notes, article, or summary here..."
                 value={text}
                 onChange={e => setText(e.target.value)}
               />
@@ -237,172 +208,163 @@ export default function ConvertPage() {
               <motion.input
                 key="youtube"
                 type="url"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="w-full rounded-xl border border-gray-600/40 bg-gray-700/60 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 p-4 text-gray-100 text-base transition-all shadow-inner placeholder-gray-400"
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="w-full rounded-2xl border border-white/10 bg-slate-900/50 focus:ring-2 focus:ring-red-500 focus:border-transparent p-5 text-gray-100 text-base transition-all shadow-inner placeholder-gray-500"
                 placeholder="Paste a YouTube video URL..."
                 value={youtubeUrl}
                 onChange={e => setYoutubeUrl(e.target.value)}
               />
             )}
           </AnimatePresence>
-          
+
           <motion.button
-            whileHover={{ scale: 1.04, backgroundColor: "#2563eb" }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full py-3 text-lg shadow-xl transition-colors duration-200 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400/60 disabled:opacity-60 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(59, 130, 246, 0.5)" }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full font-bold rounded-2xl py-4 text-lg shadow-xl transition-all duration-300 ring-1 ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed ${mode === 'youtube' ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500'} text-white`}
             onClick={handleGenerate}
             disabled={loading || (mode === "text" ? !text.trim() : !youtubeUrl.trim())}
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-3">
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
-                {mode === "youtube" ? "Processing video... (1-3 min)" : "Generating..."}
+                {mode === "youtube" ? "Transcribing Video... (this may take a moment)" : "Generating Flashcards..."}
               </span>
             ) : (
               "Generate Flashcards"
             )}
           </motion.button>
-          
-          {/* YouTube Warning */}
-          {mode === "youtube" && !loading && (
-            <div className="text-yellow-400 text-sm text-center mt-2 bg-yellow-900/20 rounded-lg p-3 border border-yellow-700/30">
-              ⚠️ YouTube processing takes 1-3 minutes (download + transcription + AI)
-            </div>
-          )}
-          
-          {/* Error Display */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 bg-red-900/50 rounded-xl p-4 text-red-300 shadow-inner text-base border border-red-700/50"
-            >
-              {error}
-            </motion.div>
-          )}
+
+          {/* Warnings/Errors */}
+          <AnimatePresence>
+            {mode === "youtube" && !loading && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gray-400 text-sm text-center bg-white/5 rounded-lg p-3 border border-white/5">
+                ℹ️ Supports videos with captions/transcripts enabled.
+              </motion.div>
+            )}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/20 text-red-200 rounded-xl p-4 text-sm text-center border border-red-500/30"
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 
-      {/* Flashcard Viewer */}
-      {flashcards.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-4xl z-10 mt-8 px-4"
-        >
-          <div className="bg-gray-800/80 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-gray-700/50">
-            {/* Card Counter & Download */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="text-gray-300 text-sm font-medium">
-                Card {currentCard + 1} of {flashcards.length}
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full transition-colors font-medium shadow-lg"
-                onClick={downloadAnkiFile}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export to Anki
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition-colors font-medium shadow-lg disabled:opacity-60"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? "Saving…" : "Save to Dashboard"}
-              </motion.button>
-            </div>
-            
-            {/* Flashcard */}
-            <div 
-              className="relative h-80 cursor-pointer perspective-1000"
-              onClick={() => setIsFlipped(!isFlipped)}
-            >
-              <motion.div
-                className="absolute inset-0 w-full h-full"
-                animate={{ rotateY: isFlipped ? 180 : 0 }}
-                transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                {/* Front (Question) */}
-                <div 
-                  className="absolute inset-0 bg-white rounded-2xl shadow-xl flex items-center justify-center p-8 text-center border-2 border-gray-200"
-                  style={{ backfaceVisibility: "hidden" }}
-                >
-                  <div className="max-w-full">
-                    <div className="text-gray-500 text-sm mb-3 font-medium uppercase tracking-wider">Question</div>
-                    <p className="text-gray-800 text-xl font-medium leading-relaxed break-words">
-                      {flashcards[currentCard]?.question}
-                    </p>
-                    <div className="text-gray-400 text-sm mt-6">Click to reveal answer</div>
-                  </div>
+      {/* Results Section */}
+      <AnimatePresence>
+        {flashcards.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="w-full max-w-4xl z-10 mt-12 px-4"
+          >
+            <div className="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+
+              <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                <div className="text-gray-300 font-medium bg-white/5 px-4 py-2 rounded-full border border-white/5">
+                  Card {currentCard + 1} / {flashcards.length}
                 </div>
-                
-                {/* Back (Answer) */}
-                <div 
-                  className="absolute inset-0 bg-blue-50 rounded-2xl shadow-xl flex items-center justify-center p-8 text-center border-2 border-blue-200"
-                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                >
-                  <div className="max-w-full">
-                    <div className="text-blue-600 text-sm mb-3 font-medium uppercase tracking-wider">Answer</div>
-                    <p className="text-gray-800 text-xl leading-relaxed break-words">
-                      {flashcards[currentCard]?.answer}
-                    </p>
-                    <div className="text-blue-500 text-sm mt-6">Click to see question</div>
-                  </div>
+                <div className="flex gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 px-5 py-2 rounded-full border border-emerald-500/30 transition-colors"
+                    onClick={downloadAnkiFile}
+                  >
+                    Export to Anki
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full shadow-lg shadow-blue-900/30"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Set"}
+                  </motion.button>
                 </div>
-              </motion.div>
-            </div>
-            
-            {/* Navigation */}
-            <div className="flex justify-between items-center mt-8">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-6 py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                onClick={() => {
-                  setCurrentCard(Math.max(0, currentCard - 1));
-                  setIsFlipped(false);
-                }}
-                disabled={currentCard === 0}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-              </motion.button>
-              
-              <div className="text-gray-400 text-sm">
-                {flashcards.length} cards generated
               </div>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-6 py-3 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                onClick={() => {
-                  setCurrentCard(Math.min(flashcards.length - 1, currentCard + 1));
-                  setIsFlipped(false);
-                }}
-                disabled={currentCard === flashcards.length - 1}
-              >
-                Next
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </motion.button>
+
+              <div className="perspective-1000">
+                <motion.div
+                  className="relative h-96 cursor-pointer transform-style-3d group"
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                  transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  {/* Front */}
+                  <div className="absolute inset-0 backface-hidden">
+                    <div className="h-full w-full bg-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-white/10 shadow-2xl group-hover:border-blue-500/30 transition-colors">
+                      <span className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-6">Question</span>
+                      <p className="text-white text-2xl md:text-3xl font-medium leading-relaxed">
+                        {flashcards[currentCard]?.question}
+                      </p>
+                      <span className="text-gray-500 text-sm mt-auto">Click to reveal</span>
+                    </div>
+                  </div>
+
+                  {/* Back */}
+                  <div
+                    className="absolute inset-0 backface-hidden"
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <div className="h-full w-full bg-slate-900 rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-blue-500/30 shadow-2xl shadow-blue-900/20">
+                      <span className="text-emerald-400 text-xs font-bold tracking-widest uppercase mb-6">Answer</span>
+                      <p className="text-gray-100 text-xl md:text-2xl leading-relaxed">
+                        {flashcards[currentCard]?.answer}
+                      </p>
+                      <span className="text-gray-500 text-sm mt-auto">Click to flip back</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="flex justify-between items-center mt-10">
+                <button
+                  className="p-4 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
+                  onClick={() => {
+                    setCurrentCard(Math.max(0, currentCard - 1));
+                    setIsFlipped(false);
+                  }}
+                  disabled={currentCard === 0}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                </button>
+
+                <div className="flex gap-1">
+                  {flashcards.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${i === currentCard ? "w-8 bg-blue-500" : "w-1.5 bg-gray-700"}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  className="p-4 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
+                  onClick={() => {
+                    setCurrentCard(Math.min(flashcards.length - 1, currentCard + 1));
+                    setIsFlipped(false);
+                  }}
+                  disabled={currentCard === flashcards.length - 1}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-} 
+}

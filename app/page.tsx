@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { PLANS } from "@/lib/plans";
+import { DemoAnimation } from "./components/DemoAnimation";
 
 const features = [
   {
@@ -97,7 +98,7 @@ const shareLinks = [
 
 const changingTexts = [
   "instantly",
-  "effortlessly", 
+  "effortlessly",
   "intelligently",
   "automatically",
 ];
@@ -106,7 +107,7 @@ const changingTexts = [
 const Particle = ({ delay, index }: { delay: number; index: number }) => {
   // Use deterministic positions based on index to prevent hydration mismatch
   const leftPosition = ((index * 17.3) % 100);
-  
+
   return (
     <motion.div
       className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
@@ -158,7 +159,7 @@ function SubscriptionPlans({ user }: { user: any }) {
       <h2 className="text-3xl font-bold text-white mb-8">Subscription Plans</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {PLANS.map((plan) => (
-          <div key={plan.id} className="bg-gray-800/80 rounded-2xl p-8 border border-gray-700/50 shadow-xl flex flex-col items-center">
+          <div key={plan.id} className="glass-card rounded-2xl p-8 flex flex-col items-center border-t border-white/10">
             <h3 className="text-xl font-bold text-blue-400 mb-2">{plan.name}</h3>
             <div className="text-2xl font-bold text-white mb-2">{plan.price}</div>
             <div className="text-gray-300 mb-4">{plan.description}</div>
@@ -196,38 +197,38 @@ export default function Home() {
       {Array.from({ length: 50 }).map((_, i) => (
         <Particle key={i} delay={i * 0.3} index={i} />
       ))}
-      
+
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full py-6 px-6 md:px-12 flex justify-between items-center backdrop-blur-sm bg-gray-900/50 border-b border-gray-700/30 relative z-10"
+        className="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-transparent relative z-20"
       >
-        <motion.div 
+        <motion.div
           whileHover={{ scale: 1.05 }}
-          className="text-2xl font-bold text-white"
+          className="text-2xl font-bold text-white tracking-tight"
         >
-          Flashcards <span className="text-blue-400">AI</span>
+          Flashcards <span className="text-blue-500 text-glow">AI</span>
         </motion.div>
         <nav className="hidden md:flex gap-8">
-          <motion.a 
+          <motion.a
             whileHover={{ y: -2 }}
-            href="#features" 
+            href="#features"
             className="text-gray-300 hover:text-blue-400 transition-colors"
           >
             Features
           </motion.a>
-          <motion.a 
+          <motion.a
             whileHover={{ y: -2 }}
-            href="#how-it-works" 
+            href="#how-it-works"
             className="text-gray-300 hover:text-blue-400 transition-colors"
           >
             How it Works
           </motion.a>
-          <motion.a 
+          <motion.a
             whileHover={{ y: -2 }}
-            href="#testimonials" 
+            href="#testimonials"
             className="text-gray-300 hover:text-blue-400 transition-colors"
           >
             Reviews
@@ -279,16 +280,16 @@ export default function Home() {
 
       {/* Hero Section */}
       <header className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 relative z-10">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tight drop-shadow-2xl"
-          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+          className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
+          style={{ fontFamily: 'var(--font-sans)' }}
         >
-          Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">AI</span>
+          Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 text-glow">AI</span>
         </motion.h1>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -307,8 +308,8 @@ export default function Home() {
             {changingTexts[currentTextIndex]}
           </motion.span>
         </motion.div>
-        
-        <motion.p 
+
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.6 }}
@@ -316,7 +317,7 @@ export default function Home() {
         >
           Upload text or YouTube videos and watch AI create professional Anki-ready flashcards in seconds.
         </motion.p>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -336,9 +337,9 @@ export default function Home() {
           ) : (
             <Link href="/auth">
               <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-full px-10 py-4 text-xl shadow-xl transition-all duration-300"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-full px-10 py-4 text-xl shadow-2xl shadow-blue-900/20 transition-all duration-300 ring-1 ring-white/20"
               >
                 Sign Up & Start Creating
               </motion.button>
@@ -352,8 +353,8 @@ export default function Home() {
             Watch Demo
           </motion.button>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1 }}
@@ -383,21 +384,13 @@ export default function Home() {
         className="py-20 px-6 md:px-12 relative z-10"
       >
         <div className="max-w-6xl mx-auto">
-          <motion.div 
-            className="bg-gray-800/50 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-gray-700/30"
-            whileHover={{ y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex items-center justify-center h-96 text-gray-400 text-xl">
-              🎥 Interactive Demo Coming Soon
-            </div>
-          </motion.div>
+          <DemoAnimation />
         </div>
       </motion.section>
 
       {/* Features Section */}
       <section id="features" className="bg-gray-800/30 backdrop-blur-xl rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full py-20 px-6 md:px-12 mb-8 border border-gray-700/30 relative z-10">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -408,16 +401,17 @@ export default function Home() {
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {features.map((feature, idx) => (
-            <motion.div 
+            <motion.div
               key={idx}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: idx * 0.2 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
-              className="flex flex-col items-center text-center bg-gray-800/40 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700/30"
+              whileHover={{ y: -10, scale: 1.02 }}
+              className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
             >
-              <motion.div 
+              <motion.div
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
                 className="mb-6 p-4 bg-gray-700/50 rounded-2xl"
@@ -433,7 +427,7 @@ export default function Home() {
 
       {/* How it Works Section */}
       <section id="how-it-works" className="max-w-5xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -444,7 +438,7 @@ export default function Home() {
         </motion.h2>
         <ol className="relative border-l border-blue-400/30 ml-8">
           {steps.map((step, idx) => (
-            <motion.li 
+            <motion.li
               key={idx}
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -452,7 +446,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="mb-16 ml-8"
             >
-              <motion.span 
+              <motion.span
                 whileHover={{ scale: 1.2 }}
                 className="absolute flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full -left-6 ring-4 ring-gray-800 text-white font-bold text-xl shadow-lg"
               >
@@ -460,7 +454,7 @@ export default function Home() {
               </motion.span>
               <motion.div
                 whileHover={{ x: 10 }}
-                className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700/30"
+                className="glass-card rounded-2xl p-6"
               >
                 <h3 className="font-bold text-white text-2xl mb-3">{step.title}</h3>
                 <p className="text-gray-300 text-lg leading-relaxed">{step.description}</p>
@@ -475,7 +469,7 @@ export default function Home() {
 
       {/* Testimonials Section */}
       <section id="testimonials" className="max-w-6xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -486,20 +480,20 @@ export default function Home() {
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {testimonials.map((t, idx) => (
-            <motion.div 
+            <motion.div
               key={idx}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: idx * 0.2 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
-              className="bg-gray-800/50 backdrop-blur-lg rounded-3xl p-8 flex flex-col items-center text-center shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700/30"
+              className="glass rounded-3xl p-8 flex flex-col items-center text-center shadow-lg transition-all duration-300"
             >
-              <motion.img 
+              <motion.img
                 whileHover={{ scale: 1.1 }}
-                src={t.avatar} 
-                alt={t.name} 
-                className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg" 
+                src={t.avatar}
+                alt={t.name}
+                className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg"
               />
               <p className="text-gray-300 text-lg mb-6 leading-relaxed italic">"{t.text}"</p>
               <span className="text-blue-400 text-lg font-bold">{t.name}</span>
@@ -510,7 +504,7 @@ export default function Home() {
 
       {/* Share Section */}
       <section className="max-w-3xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10">
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
