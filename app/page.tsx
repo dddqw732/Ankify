@@ -408,7 +408,7 @@ export default function Home() {
               transition={{ duration: 0.6, delay: idx * 0.2 }}
               viewport={{ once: true }}
               whileHover={{ y: -10, scale: 1.02 }}
-              whileHover={{ y: -10, scale: 1.02 }}
+
               className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
             >
               <motion.div
