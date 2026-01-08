@@ -28,6 +28,7 @@ export default function PayPalButton({ planId, onSuccess, onError }: PayPalButto
             }}
             onError={(err) => {
                 console.error("PayPal Subscription Error:", err);
+                alert("PayPal failed to initialize. Please check if your Client ID is correct and you have an active internet connection.");
                 onError(err);
             }}
         />

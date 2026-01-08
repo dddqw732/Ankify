@@ -31,8 +31,13 @@ export async function POST(req: Request) {
             }, { onConflict: 'paypal_subscription_id' });
 
         if (error) {
-            console.error('Database Error:', error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            console.error('PayPal Sync Database Error:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            return NextResponse.json({ error: `Sync failed: ${error.message}` }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });

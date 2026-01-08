@@ -27,8 +27,28 @@ interface FlashcardSet {
 
 function SubscriptionManagement({ user }: { user: any }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const supabase = createClient();
 
-  const currentPlanId = null;
+  useEffect(() => {
+    if (user) {
+      fetchSubscription();
+    }
+  }, [user]);
+
+  const fetchSubscription = async () => {
+    const { data, error } = await supabase
+      .from('user_subscriptions')
+      .select('plan_name')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (data) {
+      const plan = PLANS.find(p => p.name === data.plan_name);
+      if (plan) setCurrentPlanId(plan.id);
+    }
+  };
 
   const handlePayPalSuccess = async (subscriptionId: string, planName: string, variantId: string) => {
     try {
