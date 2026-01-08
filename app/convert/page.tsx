@@ -22,42 +22,60 @@ export default function ConvertPage() {
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [setTitle, setSetTitle] = useState("");
 
   function parseFlashcards(text: string): Flashcard[] {
-    const lines = text.split('\n').filter(line => line.trim());
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     const cards: Flashcard[] = [];
 
     for (const line of lines) {
+      // 1. Try Pipe Separator (Standard format)
       if (line.includes('|')) {
         const parts = line.split('|').map(p => p.trim());
+        let question = parts[0];
+        const answer = parts.slice(1).join('|').trim();
 
-        if (parts.length >= 3) {
-          const firstPart = parts[0].toLowerCase();
-          if (firstPart.match(/^(card\s*\d+|\d+[\.)]?)$/)) {
-            cards.push({
-              question: parts[1],
-              answer: parts.slice(2).join('|').trim()
-            });
-            continue;
-          }
+        // Remove common prefixes: "Card 1:", "1. ", "Q:", "Question:"
+        question = question.replace(/^(card\s*\d+[:.]?\s*|\d+[\.):]\s*|q:|question:)/i, '').trim();
+
+        if (question && answer) {
+          cards.push({ question, answer });
+          continue;
         }
+      }
 
+      // 2. Try Colon Separator (Question: Answer)
+      if (line.includes(':') && !line.match(/^https?:\/\//)) {
+        const parts = line.split(':').map(p => p.trim());
+        // Basic check for Question: Answer
         if (parts.length >= 2) {
-          let question = parts[0];
-          const answer = parts.slice(1).join('|').trim();
-          question = question.replace(/^(?:card\s*\d+[:.]?\s*|\d+[\.):]\s*)/i, '');
+          const qPrefix = parts[0].toLowerCase();
+          if (qPrefix === "question" || qPrefix === "q") {
+            const question = parts[1];
+            // find corresponding answer in next line or next part?
+            // simpler version:
+          }
 
-          if (question && answer) {
+          let question = parts[0].replace(/^(card\s*\d+[:.]?\s*|\d+[\.):]\s*|q:|question:)/i, '').trim();
+          const answer = parts.slice(1).join(':').trim();
+
+          if (question && answer && question.length < 500 && !question.includes('http')) {
             cards.push({ question, answer });
+            continue;
           }
         }
       }
     }
 
-    if (cards.length === 0) {
-      // Fallback logic could go here if needed
-      if (text.trim()) {
-        cards.push({ question: "Generated Content", answer: text });
+    // fallback if no structured cards found
+    if (cards.length === 0 && text.trim()) {
+      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+      if (sentences.length >= 2) {
+        for (let i = 0; i < sentences.length - 1; i += 2) {
+          cards.push({ question: sentences[i].trim(), answer: sentences[i + 1].trim() });
+        }
+      } else {
+        cards.push({ question: "Key Points", answer: text.trim() });
       }
     }
 
@@ -70,6 +88,7 @@ export default function ConvertPage() {
     setError(null);
     setCurrentCard(0);
     setIsFlipped(false);
+    setSetTitle("");
 
     try {
       const res = await fetch("/api/generate-flashcards", {
@@ -99,20 +118,24 @@ export default function ConvertPage() {
 
   async function handleSave() {
     if (!user) {
-      alert("You must be signed in to save flashcards. Redirecting to sign-in page…");
+      alert("You must be signed in to save flashcards. Redirecting to sign-in page...");
       router.push("/auth");
       return;
     }
-    const title = prompt("Enter a title for this flashcard set:");
-    if (!title) return;
+
+    if (!setTitle.trim()) {
+      alert("Please enter a title for your flashcard set.");
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await fetch("/api/save-flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title,
-          description: "Generated via Convert tool",
+          title: setTitle,
+          description: mode === "youtube" ? `Generated from YouTube: ${youtubeUrl}` : "Generated from text input",
           flashcards,
           userId: user.id,
         }),
@@ -154,12 +177,13 @@ export default function ConvertPage() {
       />
 
       {/* Top Navigation */}
-      <header className="absolute top-4 left-4 z-20">
-        <Link href="/dashboard" className="glass flex items-center gap-2 text-gray-300 hover:text-white px-4 py-2 rounded-full transition-all hover:bg-white/10">
+      <header className="absolute top-4 left-4 z-20 w-full pr-8">
+        <Link href="/dashboard" className="glass flex items-center gap-2 text-gray-300 hover:text-white px-3 py-2 rounded-full transition-all hover:bg-white/10 w-fit text-sm md:text-base">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Dashboard
+          <span className="hidden sm:inline">Back to Dashboard</span>
+          <span className="sm:hidden">Dashboard</span>
         </Link>
       </header>
 
@@ -269,28 +293,44 @@ export default function ConvertPage() {
             <div className="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
 
-              <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-                <div className="text-gray-300 font-medium bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                  Card {currentCard + 1} / {flashcards.length}
+              <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                <div className="flex-1 w-full max-w-md">
+                  <label htmlFor="set-title" className="block text-blue-400 text-xs font-bold tracking-widest uppercase mb-2 ml-1">
+                    Set Title
+                  </label>
+                  <input
+                    id="set-title"
+                    type="text"
+                    className="w-full bg-slate-900/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 transition-all"
+                    placeholder="Enter a title to save..."
+                    value={setTitle}
+                    onChange={(e) => setSetTitle(e.target.value)}
+                  />
                 </div>
-                <div className="flex gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 px-5 py-2 rounded-full border border-emerald-500/30 transition-colors"
-                    onClick={downloadAnkiFile}
-                  >
-                    Export to Anki
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full shadow-lg shadow-blue-900/30"
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Save Set"}
-                  </motion.button>
+
+                <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                  <div className="text-gray-400 font-medium text-xs whitespace-nowrap px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                    {flashcards.length} Cards
+                  </div>
+                  <div className="flex gap-2 flex-1 md:flex-none">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 px-4 py-2 rounded-full border border-emerald-500/30 transition-colors text-xs md:text-sm"
+                      onClick={downloadAnkiFile}
+                    >
+                      Export
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg shadow-blue-900/30 text-xs md:text-sm"
+                      onClick={handleSave}
+                      disabled={saving}
+                    >
+                      {saving ? "..." : "Save"}
+                    </motion.button>
+                  </div>
                 </div>
               </div>
 
@@ -304,9 +344,9 @@ export default function ConvertPage() {
                 >
                   {/* Front */}
                   <div className="absolute inset-0 backface-hidden">
-                    <div className="h-full w-full bg-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-white/10 shadow-2xl group-hover:border-blue-500/30 transition-colors">
-                      <span className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-6">Question</span>
-                      <p className="text-white text-2xl md:text-3xl font-medium leading-relaxed">
+                    <div className="h-full w-full bg-slate-800 rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center text-center border border-white/10 shadow-2xl group-hover:border-blue-500/30 transition-colors">
+                      <span className="text-blue-400 text-[10px] md:text-xs font-bold tracking-widest uppercase mb-4 md:mb-6">Question</span>
+                      <p className="text-white text-xl md:text-3xl font-medium leading-relaxed break-words line-clamp-6">
                         {flashcards[currentCard]?.question}
                       </p>
                       <span className="text-gray-500 text-sm mt-auto">Click to reveal</span>

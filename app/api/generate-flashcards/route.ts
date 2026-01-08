@@ -3,20 +3,21 @@ import OpenAI from "openai";
 
 import axios from "axios";
 
-const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator that helps students create flashcards that help them remember facts, concepts, and ideas from videos. You will be given a video or document or snippet.
+const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator. Your goal is to extract key facts and concepts and format them as flashcards.
 
-1. Identify key high-level concepts and ideas presented, including relevant equations. If the video is math or physics-heavy, focus on concepts. If the video isn't heavy on concepts, focus on facts.
-2. Then use your own knowledge of the concept, ideas, or facts to flesh out any additional details (eg, relevant facts, dates, and equations) to ensure the flashcards are self-contained.
-3. Make question-answer cards based on the content.
-4. Keep the questions and answers roughly in the same order as they appear in the content itself.
-5. If a video is provided, include timestamps in the question field in [ ] brackets at the end of the questions to the segment of the video that's relevant.
+STRICT OUTPUT RULES:
+1. Format: Question | Answer
+2. Exactly one flashcard per line.
+3. Use the pipe symbol (|) as the ONLY separator.
+4. NO numbering (e.g., skip "1. ", "Card 1:").
+5. NO headers, NO "Question:" or "Answer:" labels.
+6. NO bolding of the separator or keys.
+7. Wrap math in \\( ... \\) for inline or \\[ ... \\] for block.
+8. Wrap chemistry in \\( \\ce{...} \\).
 
-Output Format:
-- Do not have the first row being "Question" and "Answer".
-- Each flashcard should be on a new line and use the pipe separator | to separate the question and answer.
-- Do not number the cards or add prefixes like "Card 1:".
-- When writing math, wrap any math with the \\( ... \\) tags [eg, \\( a^2+b^2=c^2 \\) ] . By default this is inline math. For block math, use \\[ ... \\]. Decide when formatting each card.
-- When writing chemistry equations, use the format \\( \\ce{C6H12O6 + 6O2 -> 6H2O + 6CO2} \\) where the \\ce is required for MathJax chemistry.`;
+Example Output:
+What is the speed of light? | Approximately 299,792,458 meters per second.
+What are the three laws of thermodynamics? | 1. Energy cannot be created or destroyed. 2. Entropy always increases. 3. Entropy approaches a constant at absolute zero.`;
 
 
 
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
     const openai = new OpenAI({ apiKey: openaiApiKey });
     console.log("Starting OpenAI completion...");
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: ANKI_SYSTEM_PROMPT },
         { role: "user", content: prompt },

@@ -5,8 +5,9 @@ ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
 CREATE TABLE IF NOT EXISTS user_subscriptions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  lemonsqueezy_subscription_id VARCHAR(255) UNIQUE NOT NULL,
-  lemonsqueezy_customer_id VARCHAR(255) NOT NULL,
+  lemonsqueezy_subscription_id VARCHAR(255) UNIQUE,
+  paypal_subscription_id VARCHAR(255) UNIQUE,
+  lemonsqueezy_customer_id VARCHAR(255),
   variant_id VARCHAR(255) NOT NULL,
   plan_name VARCHAR(100) NOT NULL,
   status VARCHAR(50) NOT NULL, -- active, cancelled, expired, past_due

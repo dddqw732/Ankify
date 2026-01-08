@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: NextRequest) {
   try {
     const { title, description, flashcards, userId } = await request.json()
-    
+
     console.log('Save request received:', { title, flashcardsCount: flashcards?.length, userId })
-    
+
     if (!title || !flashcards || !userId) {
       console.log('Missing required fields:', { title: !!title, flashcards: !!flashcards, userId: !!userId })
       return NextResponse.json(
@@ -15,28 +17,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create Supabase client with server-side auth
+    // Verify environment variables
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    if (!supabaseUrl || !serviceRoleKey) {
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    // Log presence for debugging
+    console.log('API Save Call - Env Check:', { hasUrl: !!supabaseUrl, hasAnonKey: !!supabaseAnonKey })
+
+    if (!supabaseUrl || !supabaseAnonKey || supabaseAnonKey.includes('your_')) {
       return NextResponse.json(
-        { error: 'Supabase configuration is missing' },
+        { error: 'Supabase configuration is missing or using placeholder keys in .env.local.' },
         { status: 500 }
       )
     }
-    
-    const supabase = createSupabaseClient(supabaseUrl, serviceRoleKey)
-    
-    // For now, skip auth verification since we have the userId
-    // In production, you should verify the auth token
-    console.log('Attempting to save flashcard set for user:', userId)
+
+    // Create Supabase client with user's specific session
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore as any })
+
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      return NextResponse.json({ error: 'Auth session error: ' + sessionError.message }, { status: 401 })
+    }
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized - No active session found.' }, { status: 401 })
+    }
+
+    console.log('Saving for user:', session.user.id)
 
     // Insert flashcard set
     const { data: flashcardSet, error: setError } = await supabase
       .from('flashcard_sets')
       .insert({
-        user_id: userId,
+        user_id: session.user.id,
         title,
         description,
       })
@@ -70,7 +85,7 @@ export async function POST(request: NextRequest) {
       console.error('Cards error details:', JSON.stringify(cardsError, null, 2))
       // If flashcards fail to insert, clean up the set
       await supabase.from('flashcard_sets').delete().eq('id', flashcardSet.id)
-      
+
       return NextResponse.json(
         { error: 'Failed to create flashcards: ' + cardsError.message },
         { status: 500 }
@@ -79,16 +94,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Flashcards saved successfully, count:', flashcardData.length)
 
+    // Clear cache for dashboard
+    revalidatePath('/dashboard')
+
     return NextResponse.json({
       success: true,
       setId: flashcardSet.id,
       message: 'Flashcard set saved successfully'
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in save-flashcards API:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + (error.message || 'Unknown error') },
       { status: 500 }
     )
   }
