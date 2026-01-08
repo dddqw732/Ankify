@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +23,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <PayPalScriptProvider options={{
+            clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+            vault: true,
+            intent: "subscription"
+          }}>
+            {children}
+          </PayPalScriptProvider>
         </AuthProvider>
       </body>
     </html>

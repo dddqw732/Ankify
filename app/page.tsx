@@ -209,439 +209,433 @@ export default function Home() {
   }, []);
 
   return (
-    <PayPalScriptProvider options={{
-      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-      vault: true,
-      intent: "subscription"
-    }}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col relative overflow-hidden">
-        {/* Moving Particles Background */}
-        {Array.from({ length: 50 }).map((_, i) => (
-          <Particle key={i} delay={i * 0.3} index={i} />
-        ))}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col relative overflow-hidden">
+      {/* Moving Particles Background */}
+      {Array.from({ length: 50 }).map((_, i) => (
+        <Particle key={i} delay={i * 0.3} index={i} />
+      ))}
 
-        {/* Header */}
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-transparent relative z-40"
-        >
-          <Link href="/">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold text-white tracking-tight cursor-pointer"
-            >
-              Flashcards <span className="text-blue-500 text-glow">AI</span>
-            </motion.div>
-          </Link>
+      {/* Header */}
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-transparent relative z-40"
+      >
+        <Link href="/">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="text-2xl font-bold text-white tracking-tight cursor-pointer"
+          >
+            Flashcards <span className="text-blue-500 text-glow">AI</span>
+          </motion.div>
+        </Link>
 
-          <nav className="hidden md:flex gap-8">
-            <motion.a
-              whileHover={{ y: -2 }}
-              href="#features"
-              className="text-gray-300 hover:text-blue-400 transition-colors"
-            >
-              Features
-            </motion.a>
-            <motion.a
-              whileHover={{ y: -2 }}
-              href="#how-it-works"
-              className="text-gray-300 hover:text-blue-400 transition-colors"
-            >
-              How it Works
-            </motion.a>
-            <motion.a
-              whileHover={{ y: -2 }}
-              href="#testimonials"
-              className="text-gray-300 hover:text-blue-400 transition-colors"
-            >
-              Reviews
-            </motion.a>
-          </nav>
+        <nav className="hidden md:flex gap-8">
+          <motion.a
+            whileHover={{ y: -2 }}
+            href="#features"
+            className="text-gray-300 hover:text-blue-400 transition-colors"
+          >
+            Features
+          </motion.a>
+          <motion.a
+            whileHover={{ y: -2 }}
+            href="#how-it-works"
+            className="text-gray-300 hover:text-blue-400 transition-colors"
+          >
+            How it Works
+          </motion.a>
+          <motion.a
+            whileHover={{ y: -2 }}
+            href="#testimonials"
+            className="text-gray-300 hover:text-blue-400 transition-colors"
+          >
+            Reviews
+          </motion.a>
+        </nav>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-4">
-              {user ? (
-                <>
-                  <Link href="/dashboard">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                    >
-                      Dashboard
-                    </motion.button>
-                  </Link>
-                  <button
-                    onClick={() => signOut()}
-                    className="text-gray-300 hover:text-red-400 px-4 py-2 transition-colors font-medium"
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <>
+                <Link href="/dashboard">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
                   >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/auth">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                    >
-                      Sign In
-                    </motion.button>
-                  </Link>
-                  <Link href="/convert">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition-colors font-medium"
-                    >
-                      Get Started
-                    </motion.button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-300 hover:text-white p-2"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-                )}
-              </svg>
-            </button>
+                    Dashboard
+                  </motion.button>
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="text-gray-300 hover:text-red-400 px-4 py-2 transition-colors font-medium"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
+                  >
+                    Sign In
+                  </motion.button>
+                </Link>
+                <Link href="/convert">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition-colors font-medium"
+                  >
+                    Get Started
+                  </motion.button>
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Mobile Menu Overlay */}
-          <AnimatePresence>
-            {isMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, x: '100%' }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed inset-0 min-h-screen bg-gray-900/95 backdrop-blur-xl z-50 p-8 flex flex-col md:hidden"
-              >
-                <div className="flex justify-between items-center mb-12">
-                  <div className="text-2xl font-bold text-white tracking-tight">
-                    Flashcards <span className="text-blue-500">AI</span>
-                  </div>
-                  <button
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-gray-300 hover:text-white"
-                  >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <nav className="flex flex-col gap-8 text-center text-2xl font-semibold mb-12">
-                  <Link href="#features" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Features</Link>
-                  <Link href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">How it Works</Link>
-                  <Link href="#testimonials" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Reviews</Link>
-                </nav>
-
-                <div className="flex flex-col gap-4">
-                  {user ? (
-                    <>
-                      <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
-                        <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Dashboard</button>
-                      </Link>
-                      <button
-                        onClick={() => { signOut(); setIsMenuOpen(false); }}
-                        className="w-full bg-red-600/20 text-red-500 py-4 rounded-2xl font-bold"
-                      >
-                        Sign Out
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
-                        <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Sign In</button>
-                      </Link>
-                      <Link href="/convert" onClick={() => setIsMenuOpen(false)} className="w-full">
-                        <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/40">Get Started</button>
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.header>
-
-        {/* Hero Section */}
-        <header className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 relative z-10">
-          <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="text-4xl sm:text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
-            style={{ fontFamily: 'var(--font-sans)' }}
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden text-gray-300 hover:text-white p-2"
           >
-            Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 text-glow">AI</span>
-          </motion.h1>
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+              )}
+            </svg>
+          </button>
+        </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-            className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-4 max-w-4xl mx-auto font-light"
-          >
-            Transform your content into smart flashcards{" "}
-            <motion.span
-              key={currentTextIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="text-blue-400 font-semibold inline-block"
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: '100%' }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-0 min-h-screen bg-gray-900/95 backdrop-blur-xl z-50 p-8 flex flex-col md:hidden"
             >
-              {changingTexts[currentTextIndex]}
-            </motion.span>
-          </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
-            className="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed"
-          >
-            Upload text or YouTube videos and watch AI create professional Anki-ready flashcards in seconds.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto px-4 sm:px-0"
-          >
-            {user ? (
-              <Link href="/convert" className="w-full sm:w-auto">
-                <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-xl transition-all duration-300"
+              <div className="flex justify-between items-center mb-12">
+                <div className="text-2xl font-bold text-white tracking-tight">
+                  Flashcards <span className="text-blue-500">AI</span>
+                </div>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-gray-300 hover:text-white"
                 >
-                  Start Creating
-                </motion.button>
-              </Link>
-            ) : (
-              <Link href="/auth" className="w-full sm:w-auto">
-                <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-2xl shadow-blue-900/20 transition-all duration-300 ring-1 ring-white/20"
-                >
-                  Get Started Free
-                </motion.button>
-              </Link>
-            )}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full sm:w-auto border-2 border-gray-600 hover:border-blue-400 text-gray-300 hover:text-blue-400 font-semibold rounded-full px-10 py-4 text-lg md:text-xl transition-colors duration-300"
-            >
-              Watch Demo
-            </motion.button>
-          </motion.div>
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className="flex flex-wrap justify-center gap-3 md:gap-4 opacity-70 px-4"
-          >
-            <span className="text-gray-400 text-sm w-full md:w-auto mb-2 md:mb-0">Trusted by students at:</span>
-            <div className="flex flex-wrap justify-center gap-2">
-              {socialProof.map((name, index) => (
-                <motion.span
-                  key={name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.2 + index * 0.1 }}
-                  className="bg-gray-800/60 text-gray-300 rounded-full px-3 py-1 text-[10px] md:text-xs font-semibold border border-gray-700/50"
-                >
-                  {name}
-                </motion.span>
-              ))}
-            </div>
-          </motion.div>
-        </header>
+              <nav className="flex flex-col gap-8 text-center text-2xl font-semibold mb-12">
+                <Link href="#features" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Features</Link>
+                <Link href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">How it Works</Link>
+                <Link href="#testimonials" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Reviews</Link>
+              </nav>
 
-        {/* Demo Section */}
-        <motion.section
+              <div className="flex flex-col gap-4">
+                {user ? (
+                  <>
+                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
+                      <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Dashboard</button>
+                    </Link>
+                    <button
+                      onClick={() => { signOut(); setIsMenuOpen(false); }}
+                      className="w-full bg-red-600/20 text-red-500 py-4 rounded-2xl font-bold"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
+                      <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Sign In</button>
+                    </Link>
+                    <Link href="/convert" onClick={() => setIsMenuOpen(false)} className="w-full">
+                      <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/40">Get Started</button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
+
+      {/* Hero Section */}
+      <header className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 relative z-10">
+        <motion.h1
           initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="text-4xl sm:text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
+          style={{ fontFamily: 'var(--font-sans)' }}
+        >
+          Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 text-glow">AI</span>
+        </motion.h1>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+          className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-4 max-w-4xl mx-auto font-light"
+        >
+          Transform your content into smart flashcards{" "}
+          <motion.span
+            key={currentTextIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="text-blue-400 font-semibold inline-block"
+          >
+            {changingTexts[currentTextIndex]}
+          </motion.span>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.6 }}
+          className="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed"
+        >
+          Upload text or YouTube videos and watch AI create professional Anki-ready flashcards in seconds.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto px-4 sm:px-0"
+        >
+          {user ? (
+            <Link href="/convert" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-xl transition-all duration-300"
+              >
+                Start Creating
+              </motion.button>
+            </Link>
+          ) : (
+            <Link href="/auth" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-2xl shadow-blue-900/20 transition-all duration-300 ring-1 ring-white/20"
+              >
+                Get Started Free
+              </motion.button>
+            </Link>
+          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full sm:w-auto border-2 border-gray-600 hover:border-blue-400 text-gray-300 hover:text-blue-400 font-semibold rounded-full px-10 py-4 text-lg md:text-xl transition-colors duration-300"
+          >
+            Watch Demo
+          </motion.button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="flex flex-wrap justify-center gap-3 md:gap-4 opacity-70 px-4"
+        >
+          <span className="text-gray-400 text-sm w-full md:w-auto mb-2 md:mb-0">Trusted by students at:</span>
+          <div className="flex flex-wrap justify-center gap-2">
+            {socialProof.map((name, index) => (
+              <motion.span
+                key={name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.2 + index * 0.1 }}
+                className="bg-gray-800/60 text-gray-300 rounded-full px-3 py-1 text-[10px] md:text-xs font-semibold border border-gray-700/50"
+              >
+                {name}
+              </motion.span>
+            ))}
+          </div>
+        </motion.div>
+      </header>
+
+      {/* Demo Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="py-20 px-6 md:px-12 relative z-10"
+      >
+        <div className="max-w-6xl mx-auto">
+          <DemoAnimation />
+        </div>
+      </motion.section>
+
+      {/* Features Section */}
+      <section id="features" className="bg-gray-800/30 backdrop-blur-xl rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full py-20 px-6 md:px-12 mb-8 border border-gray-700/30 relative z-10">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="py-20 px-6 md:px-12 relative z-10"
+          className="text-4xl md:text-5xl font-bold text-white mb-16 text-center drop-shadow-lg"
         >
-          <div className="max-w-6xl mx-auto">
-            <DemoAnimation />
-          </div>
-        </motion.section>
+          Powerful Features
+        </motion.h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {features.map((feature, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: idx * 0.2 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
 
-        {/* Features Section */}
-        <section id="features" className="bg-gray-800/30 backdrop-blur-xl rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full py-20 px-6 md:px-12 mb-8 border border-gray-700/30 relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-white mb-16 text-center drop-shadow-lg"
-          >
-            Powerful Features
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {features.map((feature, idx) => (
+              className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
+            >
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10, scale: 1.02 }}
-
-                className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+                className="mb-6 p-4 bg-gray-700/50 rounded-2xl"
               >
-                <motion.div
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                  className="mb-6 p-4 bg-gray-700/50 rounded-2xl"
-                >
-                  {feature.icon}
-                </motion.div>
-                <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-                <p className="text-gray-300 text-lg leading-relaxed">{feature.description}</p>
+                {feature.icon}
               </motion.div>
-            ))}
-          </div>
-        </section>
+              <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
+              <p className="text-gray-300 text-lg leading-relaxed">{feature.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-        {/* How it Works Section */}
-        <section id="how-it-works" className="max-w-5xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
-          >
-            How it Works
-          </motion.h2>
-          <ol className="relative border-l border-blue-400/30 ml-8">
-            {steps.map((step, idx) => (
-              <motion.li
-                key={idx}
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: idx * 0.3 }}
-                viewport={{ once: true }}
-                className="mb-16 ml-8"
+      {/* How it Works Section */}
+      <section id="how-it-works" className="max-w-5xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
+        >
+          How it Works
+        </motion.h2>
+        <ol className="relative border-l border-blue-400/30 ml-8">
+          {steps.map((step, idx) => (
+            <motion.li
+              key={idx}
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: idx * 0.3 }}
+              viewport={{ once: true }}
+              className="mb-16 ml-8"
+            >
+              <motion.span
+                whileHover={{ scale: 1.2 }}
+                className="absolute flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full -left-6 ring-4 ring-gray-800 text-white font-bold text-xl shadow-lg"
               >
-                <motion.span
-                  whileHover={{ scale: 1.2 }}
-                  className="absolute flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full -left-6 ring-4 ring-gray-800 text-white font-bold text-xl shadow-lg"
-                >
-                  {idx + 1}
-                </motion.span>
-                <motion.div
-                  whileHover={{ x: 10 }}
-                  className="glass-card rounded-2xl p-6"
-                >
-                  <h3 className="font-bold text-white text-2xl mb-3">{step.title}</h3>
-                  <p className="text-gray-300 text-lg leading-relaxed">{step.description}</p>
-                </motion.div>
-              </motion.li>
-            ))}
-          </ol>
-        </section>
-
-        {/* Subscription Plans Section */}
-        <SubscriptionPlans user={user} />
-
-        {/* Testimonials Section */}
-        <section id="testimonials" className="max-w-6xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
-          >
-            What People Are Saying
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {testimonials.map((t, idx) => (
+                {idx + 1}
+              </motion.span>
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: idx * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="glass rounded-3xl p-8 flex flex-col items-center text-center shadow-lg transition-all duration-300"
+                whileHover={{ x: 10 }}
+                className="glass-card rounded-2xl p-6"
               >
-                <motion.img
-                  whileHover={{ scale: 1.1 }}
-                  src={t.avatar}
-                  alt={t.name}
-                  className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg"
-                />
-                <p className="text-gray-300 text-lg mb-6 leading-relaxed italic">"{t.text}"</p>
-                <span className="text-blue-400 text-lg font-bold">{t.name}</span>
+                <h3 className="font-bold text-white text-2xl mb-3">{step.title}</h3>
+                <p className="text-gray-300 text-lg leading-relaxed">{step.description}</p>
               </motion.div>
-            ))}
-          </div>
-        </section>
+            </motion.li>
+          ))}
+        </ol>
+      </section>
 
-        {/* Share Section */}
-        <section className="max-w-3xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-2xl md:text-3xl font-bold text-white mb-8 drop-shadow-lg"
-          >
-            Share Flashcards AI
-          </motion.h2>
-          <div className="flex justify-center gap-8 mt-4">
-            {shareLinks.map((link, idx) => (
-              <motion.a
-                key={link.name}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.2, y: -5 }}
-                whileTap={{ scale: 0.9 }}
-                className="bg-gray-800/60 hover:bg-blue-600 text-gray-300 hover:text-white rounded-full p-4 shadow-lg transition-all duration-300 border border-gray-700/30"
-                title={`Share on ${link.name}`}
-              >
-                {link.icon}
-              </motion.a>
-            ))}
-          </div>
-        </section>
+      {/* Subscription Plans Section */}
+      <SubscriptionPlans user={user} />
 
-        {/* Footer */}
-        <footer className="w-full py-8 text-center text-gray-400 text-sm mt-auto bg-gray-900/50 backdrop-blur-sm border-t border-gray-700/30 relative z-10">
-          &copy; {new Date().getFullYear()} Flashcards AI. All rights reserved.
-        </footer>
-      </div>
-    </PayPalScriptProvider>
+      {/* Testimonials Section */}
+      <section id="testimonials" className="max-w-6xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
+        >
+          What People Are Saying
+        </motion.h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {testimonials.map((t, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: idx * 0.2 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.02 }}
+              className="glass rounded-3xl p-8 flex flex-col items-center text-center shadow-lg transition-all duration-300"
+            >
+              <motion.img
+                whileHover={{ scale: 1.1 }}
+                src={t.avatar}
+                alt={t.name}
+                className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg"
+              />
+              <p className="text-gray-300 text-lg mb-6 leading-relaxed italic">"{t.text}"</p>
+              <span className="text-blue-400 text-lg font-bold">{t.name}</span>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Share Section */}
+      <section className="max-w-3xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-2xl md:text-3xl font-bold text-white mb-8 drop-shadow-lg"
+        >
+          Share Flashcards AI
+        </motion.h2>
+        <div className="flex justify-center gap-8 mt-4">
+          {shareLinks.map((link, idx) => (
+            <motion.a
+              key={link.name}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: idx * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.2, y: -5 }}
+              whileTap={{ scale: 0.9 }}
+              className="bg-gray-800/60 hover:bg-blue-600 text-gray-300 hover:text-white rounded-full p-4 shadow-lg transition-all duration-300 border border-gray-700/30"
+              title={`Share on ${link.name}`}
+            >
+              {link.icon}
+            </motion.a>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full py-8 text-center text-gray-400 text-sm mt-auto bg-gray-900/50 backdrop-blur-sm border-t border-gray-700/30 relative z-10">
+        &copy; {new Date().getFullYear()} Flashcards AI. All rights reserved.
+      </footer>
+    </div>
   );
 }

@@ -26,7 +26,6 @@ interface FlashcardSet {
 }
 
 function SubscriptionManagement({ user }: { user: any }) {
-  const [loading, setLoading] = useState<string | null>(null);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -37,7 +36,7 @@ function SubscriptionManagement({ user }: { user: any }) {
   }, [user]);
 
   const fetchSubscription = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('user_subscriptions')
       .select('plan_name')
       .eq('user_id', user.id)
@@ -79,38 +78,32 @@ function SubscriptionManagement({ user }: { user: any }) {
   };
 
   return (
-    <PayPalScriptProvider options={{
-      clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
-      vault: true,
-      intent: "subscription"
-    }}>
-      <section className="max-w-4xl mx-auto w-full py-8 md:py-16 px-4 md:px-0 text-center relative z-10" id="manage-subscription">
-        <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Manage Subscription</h2>
-        <div className="mb-6 text-gray-300">
-          <span className="font-semibold">Current Plan:</span> {currentPlanId ? PLANS.find((p: any) => p.id === currentPlanId)?.name : 'None'}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {PLANS.map((plan: any) => (
-            <div key={plan.id} className="glass-card rounded-2xl p-6 border border-gray-700/50 shadow-xl flex flex-col items-center">
-              <h3 className="text-lg font-bold text-blue-400 mb-2">{plan.name}</h3>
-              <div className="text-xl font-bold text-white mb-2">{plan.price}</div>
-              <div className="text-gray-300 mb-4 text-sm font-light">{plan.description}</div>
-              <ul className="text-gray-400 text-xs mb-6 text-left list-disc list-inside space-y-1">
-                {plan.features.map((f: string, i: number) => <li key={i}>{f}</li>)}
-              </ul>
+    <section className="max-w-4xl mx-auto w-full py-8 md:py-16 px-4 md:px-0 text-center relative z-10" id="manage-subscription">
+      <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Manage Subscription</h2>
+      <div className="mb-6 text-gray-300">
+        <span className="font-semibold">Current Plan:</span> {currentPlanId ? PLANS.find((p: any) => p.id === currentPlanId)?.name : 'None'}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        {PLANS.map((plan: any) => (
+          <div key={plan.id} className="glass-card rounded-2xl p-6 border border-gray-700/50 shadow-xl flex flex-col items-center">
+            <h3 className="text-lg font-bold text-blue-400 mb-2">{plan.name}</h3>
+            <div className="text-xl font-bold text-white mb-2">{plan.price}</div>
+            <div className="text-gray-300 mb-4 text-sm font-light">{plan.description}</div>
+            <ul className="text-gray-400 text-xs mb-6 text-left list-disc list-inside space-y-1">
+              {plan.features.map((f: string, i: number) => <li key={i}>{f}</li>)}
+            </ul>
 
-              <div className="w-full mt-auto">
-                <PayPalButton
-                  planId={plan.paypalPlanId as string}
-                  onSuccess={(id) => handlePayPalSuccess(id, plan.name, plan.variantId)}
-                  onError={(err) => alert("PayPal Error: " + err.message)}
-                />
-              </div>
+            <div className="w-full mt-auto">
+              <PayPalButton
+                planId={plan.paypalPlanId as string}
+                onSuccess={(id) => handlePayPalSuccess(id, plan.name, plan.variantId)}
+                onError={(err) => alert("PayPal Error: " + err.message)}
+              />
             </div>
-          ))}
-        </div>
-      </section>
-    </PayPalScriptProvider>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
