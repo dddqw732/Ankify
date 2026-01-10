@@ -1,7 +1,7 @@
 export const PLANS = [
   {
     id: 'small',
-    name: 'Small',
+    name: 'Small balls',
     description: 'Basic access for light users',
     price: '$5/mo',
     variantId: '568246',
@@ -13,7 +13,7 @@ export const PLANS = [
   },
   {
     id: 'mid',
-    name: 'Mid',
+    name: 'Mid balls',
     description: 'For regular learners',
     price: '$10/mo',
     variantId: '568257',
@@ -25,7 +25,7 @@ export const PLANS = [
   },
   {
     id: 'big',
-    name: 'Big',
+    name: 'Big balls',
     description: 'Unlimited for power users',
     price: '$20/mo',
     variantId: '568260',

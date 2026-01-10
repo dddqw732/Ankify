@@ -208,6 +208,16 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle Google OAuth redirect fallback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('code')) {
+      const currentUrl = window.location.href;
+      const callbackUrl = currentUrl.replace(/\/\?code=/, '/auth/callback?code=');
+      window.location.href = callbackUrl;
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col relative overflow-hidden">
       {/* Moving Particles Background */}
