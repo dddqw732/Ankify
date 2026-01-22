@@ -52,6 +52,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkAuthStatus();
     setupEventListeners();
     detectCurrentPage();
+
+    // Auto-refresh: Check if auth was recently synced (within last 30 seconds)
+    // This helps when user completes OAuth in web app and reopens extension
+    const result = await chrome.storage.local.get(['supabase_auth']);
+    if (result.supabase_auth) {
+        const authAge = Date.now() / 1000 - (result.supabase_auth.expires_at - 3600);
+        if (authAge < 30) {
+            console.log('Recent auth detected, refreshing UI...');
+            await checkAuthStatus();
+        }
+    }
 });
 
 // Check authentication status
@@ -174,8 +185,8 @@ async function handleGoogleSignIn() {
             url: `${API_URL}/auth?provider=google&extension=true`
         });
 
-        // Show a message to the user
-        showError('Please complete sign-in in the new tab, then close this popup and reopen it.');
+        // Show helpful message
+        showError('✓ Opening sign-in page... Complete sign-in in the new tab, then close and reopen this extension.');
 
     } catch (error) {
         console.error('Google Sign-In Error:', error);
