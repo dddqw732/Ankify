@@ -116,4 +116,27 @@ CREATE TRIGGER update_flashcard_sets_updated_at
 CREATE TRIGGER update_user_subscriptions_updated_at
   BEFORE UPDATE ON user_subscriptions
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column(); 
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Create user_usage table for tracking limits
+CREATE TABLE IF NOT EXISTS user_usage (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  feature_name VARCHAR(100) NOT NULL,
+  usage_count INTEGER DEFAULT 0,
+  last_used_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  UNIQUE(user_id, feature_name)
+);
+
+-- Enable RLS for user_usage
+ALTER TABLE user_usage ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for user_usage
+CREATE POLICY "Users can view their own usage" ON user_usage
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own usage" ON user_usage
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own usage" ON user_usage
+  FOR INSERT WITH CHECK (auth.uid() = user_id); 

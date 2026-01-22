@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
@@ -18,37 +19,66 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    // Log presence for debugging
-    console.log('API Save Call - Env Check:', { hasUrl: !!supabaseUrl, hasAnonKey: !!supabaseAnonKey })
-
-    if (!supabaseUrl || !supabaseAnonKey || supabaseAnonKey.includes('your_')) {
-      return NextResponse.json(
-        { error: 'Supabase configuration is missing or using placeholder keys in .env.local.' },
-        { status: 500 }
-      )
-    }
-
-    // Create Supabase client with user's specific session
+    // 1. Try Cookie Auth first (for web app usage)
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore as any })
+    let { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      return NextResponse.json({ error: 'Auth session error: ' + sessionError.message }, { status: 401 })
+    // 2. If no cookie session, try Bearer Token (for extension usage)
+    if (!session) {
+      const authHeader = request.headers.get('Authorization')
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split('Bearer ')[1]
+
+        // Create a fresh client for token validation
+        // This avoids issues where createRouteHandlerClient implicitly looks at cookies
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        const tokenClient = createClient(supabaseUrl, supabaseAnonKey)
+
+        const { data: { user }, error: userError } = await tokenClient.auth.getUser(token)
+
+        if (user && !userError) {
+          session = { user } as any
+          // We also need to use this client for DB operations to respect RLS
+          // But wait, the standard client won't have the user context unless we set it.
+          // Actually, we can just use the Service Key if we wanted to bypass RLS, BUT we want RLS.
+          // So we should use the token to create a client that acts as the user.
+          // createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
+          // Or just reuse the authenticated user for the inserts.
+          // Let's stick to using the `supabase` client for inserts but we might need to set the session?
+          // No, createRouteHandlerClient relies on cookies.
+          // If we validated the user via token, we should probably use a client initialized with that token to perfom DB ops.
+        } else {
+          console.error('Token validation failed:', userError?.message);
+        }
+      }
     }
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized - No active session found.' }, { status: 401 })
     }
 
+    // Use a client with the user's token for DB operations if it was a bearer token login
+    // If it was cookie login, `supabase` is already good.
+    // If it was bearer token, `supabase` (createRouteHandlerClient) has no auth context.
+    // So if bearer token was used, we need a client that sends that token.
+
+    let dbClient = supabase;
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      dbClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { global: { headers: { Authorization: `Bearer ${token}` } } }
+      );
+    }
+
     console.log('Saving for user:', session.user.id)
 
     // Insert flashcard set
-    const { data: flashcardSet, error: setError } = await supabase
+    const { data: flashcardSet, error: setError } = await dbClient
       .from('flashcard_sets')
       .insert({
         user_id: session.user.id,
@@ -76,7 +106,7 @@ export async function POST(request: NextRequest) {
       answer: card.answer,
     }))
 
-    const { error: cardsError } = await supabase
+    const { error: cardsError } = await dbClient
       .from('flashcards')
       .insert(flashcardData)
 
@@ -84,7 +114,7 @@ export async function POST(request: NextRequest) {
       console.error('Error creating flashcards:', cardsError)
       console.error('Cards error details:', JSON.stringify(cardsError, null, 2))
       // If flashcards fail to insert, clean up the set
-      await supabase.from('flashcard_sets').delete().eq('id', flashcardSet.id)
+      await dbClient.from('flashcard_sets').delete().eq('id', flashcardSet.id)
 
       return NextResponse.json(
         { error: 'Failed to create flashcards: ' + cardsError.message },

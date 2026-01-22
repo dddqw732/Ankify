@@ -21,9 +21,84 @@ What are the three laws of thermodynamics? | 1. Energy cannot be created or dest
 
 
 
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+
 export const maxDuration = 60; // Allow 60 seconds for execution (Vercel Pro/Hobby limits apply)
 
 export async function POST(req: NextRequest) {
+  // 1. Authenticate User
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore as any })
+
+  // Try cookie first, then Bearer token
+  let user = null;
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session) {
+    user = session.user;
+  } else {
+    // Check for Bearer token
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      const { data: { user: tokenUser } } = await supabase.auth.getUser(token);
+      user = tokenUser;
+    }
+  }
+
+  // 2. Check Usage Limits (if user exists)
+  if (user) {
+    // Check subscription
+    const { data: subscription } = await supabase
+      .from('user_subscriptions')
+      .select('plan_name, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    const isPro = subscription && (subscription.plan_name === 'Pro' || subscription.plan_name === 'Pro Plan');
+
+    if (!isPro) {
+      // Check usage count for Free tier
+      const { data: usage } = await supabase
+        .from('user_usage')
+        .select('usage_count')
+        .eq('user_id', user.id)
+        .eq('feature_name', 'flashcard_generation')
+        .single();
+
+      const currentUsage = usage?.usage_count || 0;
+
+      // Free limit: 3 generations
+      if (currentUsage >= 3) {
+        return NextResponse.json({
+          error: "You have reached the free limit of 3 generations. Please upgrade to continue used Ankify."
+        }, { status: 403 });
+      }
+
+      // Increment usage
+      const newUsage = currentUsage + 1;
+      const { error: usageError } = await supabase
+        .from('user_usage')
+        .upsert({
+          user_id: user.id,
+          feature_name: 'flashcard_generation',
+          usage_count: newUsage,
+          last_used_at: new Date().toISOString()
+        }, { onConflict: 'user_id, feature_name' });
+
+      if (usageError) {
+        console.error('Error updating usage:', usageError);
+      }
+    }
+  } else {
+    // Enforce authentication for all requests to ensure usage tracking
+    return NextResponse.json({
+      error: "Please sign in to the extension to generate flashcards."
+    }, { status: 401 });
+  }
+
   const { type, value } = await req.json();
 
   let transcript = "";

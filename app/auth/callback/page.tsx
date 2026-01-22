@@ -36,6 +36,15 @@ export default function AuthCallback() {
                 }
 
                 // Successfully authenticated, redirect to dashboard
+                if (session && session.user) {
+                    // Force sync for extension immediately
+                    localStorage.setItem('ankify_extension_sync', JSON.stringify({
+                        access_token: session.access_token,
+                        user: session.user,
+                        timestamp: Date.now()
+                    }));
+                }
+
                 router.push('/dashboard')
             } catch (error) {
                 console.error('Callback error:', error)
