@@ -1,194 +1,160 @@
 "use client";
+
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { PLANS } from "@/lib/plans";
-import { DemoAnimation } from "./components/DemoAnimation";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
-import PayPalButton from "./components/PayPalButton";
+import { HeroCharacter } from "./components/HeroCharacter";
 
 const features = [
   {
+    jp: "知能化",
+    kr: "지능화",
     title: "AI-Powered Flashcards",
-    description: "Automatically generate smart flashcards from long texts or videos.",
+    description: "Synthesize dense literature, scientific documentation, or lecture streams into precise atomic Anki cards.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
     ),
   },
   {
-    title: "Export to Anki",
-    description: "Seamlessly export your flashcards to Anki for efficient study.",
+    jp: "同調性",
+    kr: "동기화",
+    title: "Direct Anki Ecosystem",
+    description: "Export clean TSV / APKG formats calibrated with MathJax, LaTeX formulas, and chemistry notations.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v1.5M3 7.5v10.125A2.375 2.375 0 005.375 20h13.25A2.375 2.375 0 0021 17.625V7.5M3 7.5h18" /></svg>
+      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v1.5M3 7.5v10.125A2.375 2.375 0 005.375 20h13.25A2.375 2.375 0 0021 17.625V7.5M3 7.5h18" />
+      </svg>
     ),
   },
   {
-    title: "Supports Text & Video",
-    description: "Upload documents or video files and let AI do the rest.",
+    jp: "多面的",
+    kr: "다차원",
+    title: "Multimodal Video & Text",
+    description: "Process live YouTube URLs, timestamped lecture transcripts, and complex research PDFs in seconds.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0v10.5A2.25 2.25 0 0113.5 21h-3A2.25 2.25 0 018.25 19.5V9m7.5 0h-9" /></svg>
+      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0v10.5A2.25 2.25 0 0113.5 21h-3A2.25 2.25 0 018.25 19.5V9m7.5 0h-9" />
+      </svg>
     ),
   },
 ];
 
 const steps = [
   {
-    title: "Upload Content",
-    description: "Add your long text or video file in seconds.",
+    step: "01",
+    tag: "インプット / 입력",
+    title: "Ingest Your Material",
+    description: "Paste a lecture script, YouTube link, or raw theoretical notes.",
   },
   {
-    title: "AI Generates Flashcards",
-    description: "Our advanced AI instantly creates smart, effective flashcards for you.",
+    step: "02",
+    tag: "抽出 / 추론",
+    title: "Atomic Fact Extraction",
+    description: "Neural models identify cognitive primitives and construct testable queries.",
   },
   {
-    title: "Export & Study",
-    description: "Export to Anki and start mastering your material!",
+    step: "03",
+    tag: "定着 / 완성",
+    title: "Sync with Spaced Repetition",
+    description: "Export instantly into Anki and achieve flawless recall without study fatigue.",
   },
 ];
 
-const testimonials = [
+const quotes = [
   {
-    name: "Sarah K.",
-    text: "Flashcards AI saved me hours of study prep! The flashcards are spot-on and super helpful.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    quote: "Turned 40-page neurology research papers into master-level Anki decks in 30 seconds.",
+    author: "K. Takahashi",
+    affiliation: "Kyoto University",
+    cjk: "高橋 研",
   },
   {
-    name: "James L.",
-    text: "I love how easy it is to turn my lecture videos into Anki cards. Game changer!",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    name: "Dr. Emily Tran",
-    text: "As an educator, this tool helps my students focus on what matters most. Highly recommended!",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
+    quote: "The cleanest study workflow ever built. No distractions, just pure retention architecture.",
+    author: "Min-Jun Park",
+    affiliation: "KAIST AI Lab",
+    cjk: "박민준",
   },
 ];
-
-const socialProof = [
-  "Harvard",
-  "MIT",
-  "Stanford",
-  "Oxford",
-  "Yale",
-  "UCLA",
-];
-
-const shareLinks = [
-  {
-    name: "Twitter",
-    url: "https://twitter.com/intent/tweet?text=Check%20out%20Flashcards%20AI%20to%20turn%20any%20text%20or%20video%20into%20smart%20flashcards!%20https://flashcardsai.com",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.633 7.997c.013.176.013.353.013.53 0 5.39-4.104 11.61-11.61 11.61-2.307 0-4.453-.676-6.26-1.84.32.038.637.05.97.05 1.92 0 3.687-.65 5.096-1.747-1.793-.037-3.308-1.217-3.833-2.847.25.037.5.062.763.062.37 0 .74-.05 1.085-.144-1.87-.375-3.28-2.03-3.28-4.017v-.05c.55.306 1.18.49 1.85.513a4.07 4.07 0 01-1.81-3.39c0-.75.2-1.45.55-2.05a11.62 11.62 0 008.42 4.27c-.062-.3-.1-.6-.1-.92 0-2.22 1.8-4.02 4.02-4.02 1.16 0 2.22.487 2.96 1.27a7.97 7.97 0 002.56-.98 4.01 4.01 0 01-1.77 2.22 8.04 8.04 0 002.31-.62 8.6 8.6 0 01-2.01 2.09z" /></svg>
-    ),
-  },
-  {
-    name: "Facebook",
-    url: "https://www.facebook.com/sharer/sharer.php?u=https://flashcardsai.com",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.406.595 24 1.326 24H12.82v-9.294H9.692v-3.622h3.127V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.92.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.406 24 22.674V1.326C24 .592 23.406 0 22.675 0" /></svg>
-    ),
-  },
-  {
-    name: "LinkedIn",
-    url: "https://www.linkedin.com/shareArticle?mini=true&url=https://flashcardsai.com&title=Flashcards%20AI&summary=Turn%20any%20text%20or%20video%20into%20smart%20flashcards!",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11.75 20h-3v-10h3v10zm-1.5-11.27c-.97 0-1.75-.79-1.75-1.76s.78-1.76 1.75-1.76c.97 0 1.75.79 1.75 1.76s-.78 1.76-1.75 1.76zm15.25 11.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-10h2.88v1.36h.04c.4-.75 1.38-1.54 2.84-1.54 3.04 0 3.6 2 3.6 4.59v5.59z" /></svg>
-    ),
-  },
-];
-
-const changingTexts = [
-  "instantly",
-  "effortlessly",
-  "intelligently",
-  "automatically",
-];
-
-// Particle component with fixed positions to prevent hydration mismatch
-const Particle = ({ delay, index }: { delay: number; index: number }) => {
-  // Use deterministic positions based on index to prevent hydration mismatch
-  const leftPosition = ((index * 17.3) % 100);
-
-  return (
-    <motion.div
-      className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
-      animate={{
-        y: [0, -100, -200, -300, -400],
-        x: [0, 30, -20, 10, -5],
-        opacity: [0, 1, 1, 1, 0],
-      }}
-      transition={{
-        duration: 8,
-        delay,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-      style={{
-        left: `${leftPosition}%`,
-        bottom: -10,
-      }}
-    />
-  );
-};
 
 function SubscriptionPlans({ user }: { user: any }) {
-  const handlePayPalSuccess = async (subscriptionId: string, planName: string, variantId: string) => {
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleSubscribe = async (variantId: string) => {
+    setLoading(variantId);
     try {
-      const userId = user?.id;
-      if (!userId) throw new Error("You must be signed in to sync your subscription.");
-
-      const res = await fetch('/api/paypal-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subscriptionId,
-          userId,
-          planName,
-          variantId
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to sync subscription');
+      const email = user?.email;
+      if (!email) {
+        alert("You must be signed in to subscribe. Redirecting to sign in...");
+        window.location.href = "/auth";
+        return;
       }
-
-      alert("Subscription successful! Redirecting to dashboard...");
-      window.location.href = "/dashboard";
-    } catch (err) {
-      alert("Failed to sync subscription: " + (err as any).message);
+      const returnUrl = window.location.origin + "/dashboard";
+      const res = await fetch("/api/lemonsqueezy/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId, email, returnUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Checkout currently unavailable");
+      window.location.href = data.url;
+    } catch (err: any) {
+      alert("Payment Gateway Notice: " + err.message);
+    } finally {
+      setLoading(null);
     }
   };
 
   return (
-    <section className="max-w-4xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10" id="plans">
-      <h2 className="text-3xl font-bold text-white mb-8">Subscription Plans</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {PLANS.map((plan) => (
-          <div key={plan.id} className="glass-card rounded-2xl p-8 flex flex-col items-center border-t border-white/10">
-            <h3 className="text-xl font-bold text-blue-400 mb-2">{plan.name}</h3>
-            <div className="text-2xl font-bold text-white mb-2">{plan.price}</div>
-            <div className="text-gray-300 mb-4">{plan.description}</div>
-            <ul className="text-gray-400 text-sm mb-6 text-left list-disc list-inside">
-              {plan.features.map((f, i) => <li key={i}>{f}</li>)}
-            </ul>
+    <section className="max-w-6xl mx-auto w-full py-24 px-6 relative z-10" id="plans">
+      <div className="text-center mb-16">
+        <div className="flex items-center justify-center gap-3 text-xs tracking-[0.3em] uppercase text-white/50 mb-3">
+          <span className="font-jp">会員プラン</span>
+          <span>•</span>
+          <span className="font-kr">멤버십 플랜</span>
+        </div>
+        <h2 className="text-4xl md:text-5xl font-serif-editorial text-white tracking-tight">
+          Curated Membership
+        </h2>
+      </div>
 
-            <div className="w-full mt-auto">
-              {user ? (
-                <PayPalButton
-                  planId={plan.paypalPlanId as string}
-                  onSuccess={(id) => handlePayPalSuccess(id, plan.name, plan.variantId)}
-                  onError={(err) => alert("PayPal Error: " + err.message)}
-                />
-              ) : (
-                <Link href="/auth" className="block w-full">
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors">
-                    Sign In to Subscribe
-                  </button>
-                </Link>
-              )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {PLANS.map((plan, i) => (
+          <div
+            key={plan.id}
+            className="glass-editorial rounded-2xl p-8 flex flex-col justify-between border border-white/10 hover:border-white/25 transition-all duration-300 relative group"
+          >
+            {i === 1 && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] uppercase font-bold tracking-[0.2em] px-3 py-1 rounded-full shadow-lg">
+                Popular • 標準
+              </div>
+            )}
+            <div>
+              <div className="flex justify-between items-baseline mb-4">
+                <h3 className="text-xl font-medium text-white tracking-wide">{plan.name}</h3>
+                <span className="text-2xl font-serif-editorial text-white">{plan.price}</span>
+              </div>
+              <p className="text-sm text-neutral-400 mb-6 font-light">{plan.description}</p>
+              <div className="h-px w-full bg-white/10 mb-6" />
+              <ul className="space-y-3 mb-8 text-sm text-neutral-300">
+                {plan.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <span className="w-1 h-1 rounded-full bg-white/60" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
+
+            <button
+              onClick={() => handleSubscribe(plan.variantId)}
+              disabled={loading === plan.variantId}
+              className="w-full py-3.5 px-6 rounded-full text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 hover:border-white"
+            >
+              {loading === plan.variantId ? "Processing..." : "Select Plan"}
+            </button>
           </div>
         ))}
       </div>
@@ -197,610 +163,345 @@ function SubscriptionPlans({ user }: { user: any }) {
 }
 
 export default function Home() {
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % changingTexts.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Handle Google OAuth redirect fallback
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('code')) {
-      const currentUrl = window.location.href;
-      const callbackUrl = currentUrl.replace(/\/\?code=/, '/auth/callback?code=');
-      window.location.href = callbackUrl;
-    }
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col relative overflow-hidden">
-      {/* Moving Particles Background */}
-      {Array.from({ length: 50 }).map((_, i) => (
-        <Particle key={i} delay={i * 0.3} index={i} />
-      ))}
+    <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain">
+      {/* Background Subtle Atmospheric Glows */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40vh] right-1/4 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[160px] pointer-events-none" />
 
-      {/* Header */}
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-transparent relative z-40"
-      >
-        <Link href="/">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="text-2xl font-bold text-white tracking-tight cursor-pointer"
-          >
-            Flashcards <span className="text-blue-500 text-glow">AI</span>
-          </motion.div>
+      {/* Top Navigation Bar: Minimalist Luxury Editorial */}
+      <header className="fixed top-0 left-0 w-full z-50 px-6 sm:px-12 py-6 flex items-center justify-between backdrop-blur-md bg-black/40 border-b border-white/[0.06]">
+        {/* Brand Logo & Subtle CJK Watermark */}
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="w-10 h-10 rounded-full overflow-hidden border border-white/30 bg-black/60 p-0.5 shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:border-white transition-all group-hover:scale-105 flex items-center justify-center">
+            <img
+              src="/logo_character_strict_hair_edit_3.png"
+              alt="Ankify Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold tracking-[0.25em] uppercase text-white font-cinzel">
+              ANKIFY
+            </span>
+            <span className="text-[9px] tracking-[0.2em] text-neutral-400 font-jp">
+              記憶 • インテリジェンス
+            </span>
+          </div>
         </Link>
 
-        <nav className="hidden md:flex gap-8">
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#features"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            Features
-          </motion.a>
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#how-it-works"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            How it Works
-          </motion.a>
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#testimonials"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            Reviews
-          </motion.a>
+        {/* Desktop Links */}
+        <nav className="hidden md:flex items-center gap-10 text-xs tracking-[0.2em] uppercase text-neutral-400">
+          <a href="#about" className="hover:text-white transition-colors">
+            Manifesto
+          </a>
+          <a href="#features" className="hover:text-white transition-colors">
+            Architecture
+          </a>
+          <a href="#how-it-works" className="hover:text-white transition-colors">
+            System
+          </a>
+          <a href="#plans" className="hover:text-white transition-colors">
+            Access
+          </a>
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <Link href="/dashboard">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                  >
-                    Dashboard
-                  </motion.button>
-                </Link>
-                <button
-                  onClick={() => signOut()}
-                  className="text-gray-300 hover:text-red-400 px-4 py-2 transition-colors font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/auth">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                  >
-                    Sign In
-                  </motion.button>
-                </Link>
-                <Link href="/auth">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition-colors font-medium"
-                  >
-                    Get Started
-                  </motion.button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-gray-300 hover:text-white p-2"
-          >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-              )}
-            </svg>
-          </button>
+        {/* User / CTA */}
+        <div className="hidden md:flex items-center gap-4">
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-xs tracking-[0.15em] uppercase text-neutral-300 hover:text-white px-4 py-2 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => signOut()}
+                className="text-xs tracking-[0.15em] uppercase text-neutral-400 hover:text-red-400 px-3 py-2 transition-colors"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth"
+                className="text-xs tracking-[0.15em] uppercase text-neutral-300 hover:text-white px-4 py-2 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/convert"
+                className="glass-pill text-xs tracking-[0.2em] uppercase text-white font-medium px-5 py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300"
+              >
+                Start for Free
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Mobile Menu Overlay */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: '100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-0 min-h-screen bg-gray-900/95 backdrop-blur-xl z-50 p-8 flex flex-col md:hidden"
-            >
-              <div className="flex justify-between items-center mb-12">
-                <div className="text-2xl font-bold text-white tracking-tight">
-                  Flashcards <span className="text-blue-500">AI</span>
-                </div>
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-gray-300 hover:text-white"
-                >
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <nav className="flex flex-col gap-8 text-center text-2xl font-semibold mb-12">
-                <Link href="#features" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Features</Link>
-                <Link href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">How it Works</Link>
-                <Link href="#testimonials" onClick={() => setIsMenuOpen(false)} className="text-gray-300 hover:text-blue-400">Reviews</Link>
-              </nav>
-
-              <div className="flex flex-col gap-4">
-                {user ? (
-                  <>
-                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full">
-                      <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Dashboard</button>
-                    </Link>
-                    <button
-                      onClick={() => { signOut(); setIsMenuOpen(false); }}
-                      className="w-full bg-red-600/20 text-red-500 py-4 rounded-2xl font-bold"
-                    >
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
-                      <button className="w-full bg-white/10 text-white py-4 rounded-2xl font-bold">Sign In</button>
-                    </Link>
-                    <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="w-full">
-                      <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-900/40">Get Started</button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.header>
-
-      {/* Hero Section */}
-      <header className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 relative z-10">
-        <motion.h1
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="text-4xl sm:text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
-          style={{ fontFamily: 'var(--font-sans)' }}
+        {/* Mobile Hamburger */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden text-white/80 hover:text-white p-2"
+          aria-label="Toggle menu"
         >
-          Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 text-glow">AI</span>
-        </motion.h1>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-          className="text-xl sm:text-2xl md:text-3xl text-gray-300 mb-4 max-w-4xl mx-auto font-light"
-        >
-          Transform your content into smart flashcards{" "}
-          <motion.span
-            key={currentTextIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="text-blue-400 font-semibold inline-block"
-          >
-            {changingTexts[currentTextIndex]}
-          </motion.span>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed"
-        >
-          Upload text or YouTube videos and watch AI create professional Anki-ready flashcards in seconds.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto px-4 sm:px-0"
-        >
-          {user ? (
-            <Link href="/convert" className="w-full sm:w-auto">
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-xl transition-all duration-300"
-              >
-                Start Creating
-              </motion.button>
-            </Link>
-          ) : (
-            <Link href="/auth" className="w-full sm:w-auto">
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-full px-10 py-4 text-lg md:text-xl shadow-2xl shadow-blue-900/20 transition-all duration-300 ring-1 ring-white/20"
-              >
-                Get Started Free
-              </motion.button>
-            </Link>
-          )}
-          <motion.a
-            href="#extension"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto border-2 border-gray-600 hover:border-blue-400 text-gray-300 hover:text-blue-400 font-semibold rounded-full px-10 py-4 text-lg md:text-xl transition-colors duration-300 flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download Extension
-          </motion.a>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="flex flex-wrap justify-center gap-3 md:gap-4 opacity-70 px-4"
-        >
-          <span className="text-gray-400 text-sm w-full md:w-auto mb-2 md:mb-0">Trusted by students at:</span>
-          <div className="flex flex-wrap justify-center gap-2">
-            {socialProof.map((name, index) => (
-              <motion.span
-                key={name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2 + index * 0.1 }}
-                className="bg-gray-800/60 text-gray-300 rounded-full px-3 py-1 text-[10px] md:text-xs font-semibold border border-gray-700/50"
-              >
-                {name}
-              </motion.span>
-            ))}
-          </div>
-        </motion.div>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {isMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            )}
+          </svg>
+        </button>
       </header>
 
-      {/* Chrome Extension Section */}
-      <motion.section
-        id="extension"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="py-20 px-6 md:px-12 relative z-10"
-      >
-        <div className="max-w-6xl mx-auto">
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-[#080808]/98 backdrop-blur-2xl pt-28 px-8 flex flex-col gap-6 md:hidden"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400">Chrome Extension</span>
-            </h2>
-            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-              Generate flashcards from any webpage or YouTube video with a single click
-            </p>
+            <nav className="flex flex-col gap-6 text-lg tracking-[0.15em] uppercase text-neutral-300">
+              <a href="#about" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Manifesto</a>
+              <a href="#features" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Architecture</a>
+              <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="hover:text-white">System</a>
+              <a href="#plans" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Access</a>
+            </nav>
+            <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
+              <Link
+                href="/convert"
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full text-center py-3 rounded-full bg-white text-black font-semibold text-xs tracking-widest uppercase"
+              >
+                Get Started Free
+              </Link>
+            </div>
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Extension Preview */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="glass-card rounded-3xl p-8 border-t border-white/10">
-                <div className="flex items-center gap-4 mb-6">
-                  <img
-                    src="/extension-icon.png"
-                    alt="Ankify Extension"
-                    className="w-16 h-16 rounded-2xl shadow-lg"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">Ankify Extension</h3>
-                    <p className="text-gray-400 text-sm">For Google Chrome</p>
-                  </div>
-                </div>
+      {/* =========================================================================
+          HERO SECTION: Luxury Editorial, CJK typography, Mouse 3D Tracking & White Beam Glow
+         ========================================================================= */}
+      <section className="relative min-h-screen pt-32 pb-20 px-6 sm:px-12 max-w-7xl mx-auto flex flex-col justify-center">
+        {/* Subtle Category & CJK Coordinate Header */}
+        <div className="flex items-center gap-4 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-8">
+          <span className="w-6 h-px bg-white/30" />
+          <span className="font-jp">A SPACE FOR HUMAN RETENTION</span>
+          <span>•</span>
+          <span className="font-kr">지식의 초월</span>
+        </div>
 
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300">Auto-detect YouTube videos</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300">Select text from any webpage</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300">Instant AI flashcard generation</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300">Export to Anki with one click</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300">Save to your account</span>
-                  </li>
-                </ul>
+        {/* Main 2-Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column: Big Bold Statement Typography */}
+          <div className="lg:col-span-7 flex flex-col items-start z-20">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light text-white tracking-tight leading-[1.08] mb-6">
+              Bringing memory <br />
+              together in a <br />
+              <span className="font-serif-editorial italic font-normal text-white">
+                disconnected
+              </span>{" "}
+              world.
+            </h1>
 
-                <a
-                  href="/ankify-extension.zip"
-                  download
-                  className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl px-6 py-3 text-center transition-all duration-300 shadow-lg shadow-blue-900/30"
-                >
-                  Download Extension
-                </a>
+            <p className="text-sm sm:text-base text-neutral-400 max-w-xl font-light leading-relaxed mb-10">
+              Bridging the gap between knowledge ingestion and total neural retention.
+              Where high-density lectures, research texts, and videos are sculpted into pure, 
+              instinctive recall.
+            </p>
 
-                <p className="text-gray-400 text-xs text-center mt-4">
-                  Free • Works with your Ankify account
-                </p>
-              </div>
-            </motion.div>
+            {/* Action Bar */}
+            <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+              <Link
+                href="/convert"
+                className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-black text-xs font-semibold uppercase tracking-[0.25em] hover:bg-neutral-200 transition-all duration-300 flex items-center justify-center gap-2 group shadow-[0_0_40px_rgba(255,255,255,0.25)]"
+              >
+                <span>Get Started Free</span>
+                <span className="group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-200">↗</span>
+              </Link>
 
-            {/* Installation Steps */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h3 className="text-2xl font-bold text-white mb-6">Quick Installation</h3>
-              <ol className="space-y-6">
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</span>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Download the Extension</h4>
-                    <p className="text-gray-400 text-sm">Click the download button, save, and <strong>unzip</strong> the extension files</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</span>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Open Chrome Extensions</h4>
-                    <p className="text-gray-400 text-sm">Go to chrome://extensions/ and enable Developer Mode</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm">3</span>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Load Unpacked</h4>
-                    <p className="text-gray-400 text-sm">Click "Load unpacked" and select the <strong>unzipped</strong> folder</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm">4</span>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Start Creating!</h4>
-                    <p className="text-gray-400 text-sm">Sign in with your Ankify account and start generating flashcards</p>
-                  </div>
-                </li>
-              </ol>
+              <Link
+                href="/auth"
+                className="w-full sm:w-auto px-7 py-4 rounded-full border border-white/20 hover:border-white text-white text-xs font-medium uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center"
+              >
+                Sign In
+              </Link>
+            </div>
 
-              <div className="mt-8 glass rounded-2xl p-6 border border-blue-500/30">
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <h4 className="text-white font-semibold mb-1">Need Help?</h4>
-                    <p className="text-gray-400 text-sm">
-                      Check out the detailed installation guide in the extension README or contact support.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            {/* Corner Editorial Note */}
+            <div className="mt-16 pt-8 border-t border-white/[0.08] flex items-center gap-6 text-[11px] text-neutral-400 font-light">
+              <span className="font-jp tracking-wider text-white/50">無限の記憶力</span>
+              <span>—</span>
+              <p>The future is not a place. It is a feeling we make together.</p>
+            </div>
+          </div>
+
+          {/* Right Column: Interactive 3D Character with White Beam Radiance */}
+          <div className="lg:col-span-5 flex justify-center items-center relative z-10">
+            <HeroCharacter />
           </div>
         </div>
-      </motion.section>
+      </section>
 
-      {/* Demo Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="py-20 px-6 md:px-12 relative z-10"
-      >
-        <div className="max-w-6xl mx-auto">
-          <DemoAnimation />
+      {/* =========================================================================
+          EDITORIAL SUB-HERO: "Technology brought us closer..."
+         ========================================================================= */}
+      <section id="about" className="py-28 px-6 sm:px-12 border-t border-white/[0.06] max-w-7xl mx-auto relative z-10">
+        <div className="flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12">
+          <span className="font-jp">思考の進化</span>
+          <span>/</span>
+          <span className="font-kr">02 • 인지 과학</span>
         </div>
-      </motion.section>
 
-      {/* Features Section */}
-      <section id="features" className="bg-gray-800/30 backdrop-blur-xl rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full py-20 px-6 md:px-12 mb-8 border border-gray-700/30 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-white mb-16 text-center drop-shadow-lg"
-        >
-          Powerful Features
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-baseline">
+          <div className="lg:col-span-8">
+            <h2 className="text-3xl sm:text-5xl md:text-6xl font-light text-white tracking-tight leading-[1.12]">
+              Technology brought us closer. <br />
+              <span className="font-serif-editorial italic font-normal text-neutral-300">
+                Now let’s make it feel close.
+              </span>
+            </h2>
+          </div>
 
-              className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
+          <div className="lg:col-span-4 flex flex-col justify-between">
+            <p className="text-sm text-neutral-400 font-light leading-relaxed mb-6">
+              We believe the most meaningful connections live somewhere between a mnemonic and a
+              moment — a quiet place where knowledge can show up as effortlessly as intuition.
+            </p>
+            <a
+              href="#how-it-works"
+              className="text-xs uppercase tracking-[0.2em] text-white hover:text-neutral-300 flex items-center gap-2"
             >
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-                className="mb-6 p-4 bg-gray-700/50 rounded-2xl"
-              >
-                {feature.icon}
-              </motion.div>
-              <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">{feature.description}</p>
-            </motion.div>
+              <span>Read our synthesis</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          FEATURES / ARCHITECTURE
+         ========================================================================= */}
+      <section id="features" className="py-24 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.06] relative z-10">
+        <div className="flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12">
+          <span className="font-jp">基盤構造</span>
+          <span>/</span>
+          <span className="font-kr">03 • 시스템 설계</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {features.map((feat, i) => (
+            <div
+              key={i}
+              className="glass-editorial rounded-2xl p-8 border border-white/[0.08] hover:border-white/20 transition-all duration-300 flex flex-col justify-between group"
+            >
+              <div>
+                <div className="flex justify-between items-center mb-8">
+                  <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 group-hover:border-white transition-colors">
+                    {feat.icon}
+                  </div>
+                  <span className="text-[10px] tracking-[0.25em] text-neutral-400 font-jp">
+                    {feat.jp} • {feat.kr}
+                  </span>
+                </div>
+                <h3 className="text-xl font-medium text-white mb-3 tracking-wide">{feat.title}</h3>
+                <p className="text-sm text-neutral-400 font-light leading-relaxed">{feat.description}</p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/[0.05] flex items-center justify-between text-[10px] uppercase tracking-widest text-neutral-400">
+                <span>Core Module</span>
+                <span>0{i + 1}</span>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section id="how-it-works" className="max-w-5xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
-        >
-          How it Works
-        </motion.h2>
-        <ol className="relative border-l border-blue-400/30 ml-8">
-          {steps.map((step, idx) => (
-            <motion.li
-              key={idx}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.3 }}
-              viewport={{ once: true }}
-              className="mb-16 ml-8"
-            >
-              <motion.span
-                whileHover={{ scale: 1.2 }}
-                className="absolute flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full -left-6 ring-4 ring-gray-800 text-white font-bold text-xl shadow-lg"
-              >
-                {idx + 1}
-              </motion.span>
-              <motion.div
-                whileHover={{ x: 10 }}
-                className="glass-card rounded-2xl p-6"
-              >
-                <h3 className="font-bold text-white text-2xl mb-3">{step.title}</h3>
-                <p className="text-gray-300 text-lg leading-relaxed">{step.description}</p>
-              </motion.div>
-            </motion.li>
+      {/* =========================================================================
+          HOW IT WORKS (SYSTEM)
+         ========================================================================= */}
+      <section id="how-it-works" className="py-24 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.06] relative z-10">
+        <div className="flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12">
+          <span className="font-jp">実行フロー</span>
+          <span>/</span>
+          <span className="font-kr">04 • 프로세스</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {steps.map((s, idx) => (
+            <div key={idx} className="border-t border-white/20 pt-6 flex flex-col justify-between min-h-[220px]">
+              <div>
+                <div className="flex justify-between items-center text-xs tracking-widest text-neutral-400 mb-4">
+                  <span className="text-white font-cinzel text-lg">{s.step}</span>
+                  <span className="font-jp text-[11px] text-white/40">{s.tag}</span>
+                </div>
+                <h4 className="text-lg font-medium text-white mb-3">{s.title}</h4>
+                <p className="text-sm text-neutral-400 font-light leading-relaxed">{s.description}</p>
+              </div>
+            </div>
           ))}
-        </ol>
+        </div>
       </section>
 
-      {/* Subscription Plans Section */}
+      {/* =========================================================================
+          PRICING / ACCESS
+         ========================================================================= */}
       <SubscriptionPlans user={user} />
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="max-w-6xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
-        >
-          What People Are Saying
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {testimonials.map((t, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-              className="glass rounded-3xl p-8 flex flex-col items-center text-center shadow-lg transition-all duration-300"
-            >
-              <motion.img
-                whileHover={{ scale: 1.1 }}
-                src={t.avatar}
-                alt={t.name}
-                className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg"
-              />
-              <p className="text-gray-300 text-lg mb-6 leading-relaxed italic">"{t.text}"</p>
-              <span className="text-blue-400 text-lg font-bold">{t.name}</span>
-            </motion.div>
+      {/* =========================================================================
+          TESTIMONIALS / QUOTES
+         ========================================================================= */}
+      <section className="py-24 px-6 sm:px-12 max-w-5xl mx-auto border-t border-white/[0.06] text-center relative z-10">
+        <div className="flex items-center justify-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12">
+          <span className="font-jp">証言</span>
+          <span>•</span>
+          <span className="font-kr">추천사</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {quotes.map((q, i) => (
+            <div key={i} className="glass-editorial p-8 rounded-2xl border border-white/[0.08] text-left">
+              <p className="text-base text-neutral-300 font-light italic mb-6 leading-relaxed">
+                "{q.quote}"
+              </p>
+              <div className="flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-medium text-white">{q.author}</div>
+                  <div className="text-neutral-400 text-[11px]">{q.affiliation}</div>
+                </div>
+                <span className="text-sm text-neutral-400 font-jp">{q.cjk}</span>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Share Section */}
-      <section className="max-w-3xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-2xl md:text-3xl font-bold text-white mb-8 drop-shadow-lg"
-        >
-          Share Flashcards AI
-        </motion.h2>
-        <div className="flex justify-center gap-8 mt-4">
-          {shareLinks.map((link, idx) => (
-            <motion.a
-              key={link.name}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.2, y: -5 }}
-              whileTap={{ scale: 0.9 }}
-              className="bg-gray-800/60 hover:bg-blue-600 text-gray-300 hover:text-white rounded-full p-4 shadow-lg transition-all duration-300 border border-gray-700/30"
-              title={`Share on ${link.name}`}
-            >
-              {link.icon}
-            </motion.a>
-          ))}
+      {/* =========================================================================
+          FOOTER: Editorial Clean
+         ========================================================================= */}
+      <footer className="w-full py-12 px-6 sm:px-12 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-neutral-400 relative z-10">
+        <div className="flex items-center gap-4">
+          <span className="font-cinzel text-white text-sm">ANKIFY</span>
+          <span>•</span>
+          <span className="font-jp text-[10px]">認知革命 • 2026</span>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="w-full py-8 text-center text-gray-400 text-sm mt-auto bg-gray-900/50 backdrop-blur-sm border-t border-gray-700/30 relative z-10">
-        &copy; {new Date().getFullYear()} Flashcards AI. All rights reserved.
+        <p className="text-neutral-400 font-light">
+          Sculpted for scholars, researchers, and creators.
+        </p>
+        <div className="flex gap-6 text-[11px] uppercase tracking-wider">
+          <a href="#" className="hover:text-white transition-colors">Twitter</a>
+          <a href="#" className="hover:text-white transition-colors">Discord</a>
+          <a href="#" className="hover:text-white transition-colors">GitHub</a>
+        </div>
       </footer>
     </div>
   );
