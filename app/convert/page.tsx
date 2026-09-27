@@ -22,60 +22,42 @@ export default function ConvertPage() {
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [setTitle, setSetTitle] = useState("");
 
   function parseFlashcards(text: string): Flashcard[] {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    const lines = text.split('\n').filter(line => line.trim());
     const cards: Flashcard[] = [];
 
     for (const line of lines) {
-      // 1. Try Pipe Separator (Standard format)
       if (line.includes('|')) {
         const parts = line.split('|').map(p => p.trim());
-        let question = parts[0];
-        const answer = parts.slice(1).join('|').trim();
 
-        // Remove common prefixes: "Card 1:", "1. ", "Q:", "Question:"
-        question = question.replace(/^(card\s*\d+[:.]?\s*|\d+[\.):]\s*|q:|question:)/i, '').trim();
-
-        if (question && answer) {
-          cards.push({ question, answer });
-          continue;
-        }
-      }
-
-      // 2. Try Colon Separator (Question: Answer)
-      if (line.includes(':') && !line.match(/^https?:\/\//)) {
-        const parts = line.split(':').map(p => p.trim());
-        // Basic check for Question: Answer
-        if (parts.length >= 2) {
-          const qPrefix = parts[0].toLowerCase();
-          if (qPrefix === "question" || qPrefix === "q") {
-            const question = parts[1];
-            // find corresponding answer in next line or next part?
-            // simpler version:
-          }
-
-          let question = parts[0].replace(/^(card\s*\d+[:.]?\s*|\d+[\.):]\s*|q:|question:)/i, '').trim();
-          const answer = parts.slice(1).join(':').trim();
-
-          if (question && answer && question.length < 500 && !question.includes('http')) {
-            cards.push({ question, answer });
+        if (parts.length >= 3) {
+          const firstPart = parts[0].toLowerCase();
+          if (firstPart.match(/^(card\s*\d+|\d+[\.)]?)$/)) {
+            cards.push({
+              question: parts[1],
+              answer: parts.slice(2).join('|').trim()
+            });
             continue;
+          }
+        }
+
+        if (parts.length >= 2) {
+          let question = parts[0];
+          const answer = parts.slice(1).join('|').trim();
+          question = question.replace(/^(?:card\s*\d+[:.]?\s*|\d+[\.):]\s*)/i, '');
+
+          if (question && answer) {
+            cards.push({ question, answer });
           }
         }
       }
     }
 
-    // fallback if no structured cards found
-    if (cards.length === 0 && text.trim()) {
-      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-      if (sentences.length >= 2) {
-        for (let i = 0; i < sentences.length - 1; i += 2) {
-          cards.push({ question: sentences[i].trim(), answer: sentences[i + 1].trim() });
-        }
-      } else {
-        cards.push({ question: "Key Points", answer: text.trim() });
+    if (cards.length === 0) {
+      // Fallback logic could go here if needed
+      if (text.trim()) {
+        cards.push({ question: "Generated Content", answer: text });
       }
     }
 
@@ -88,7 +70,6 @@ export default function ConvertPage() {
     setError(null);
     setCurrentCard(0);
     setIsFlipped(false);
-    setSetTitle("");
 
     try {
       const res = await fetch("/api/generate-flashcards", {
@@ -118,24 +99,20 @@ export default function ConvertPage() {
 
   async function handleSave() {
     if (!user) {
-      alert("You must be signed in to save flashcards. Redirecting to sign-in page...");
+      alert("You must be signed in to save flashcards. Redirecting to sign-in page…");
       router.push("/auth");
       return;
     }
-
-    if (!setTitle.trim()) {
-      alert("Please enter a title for your flashcard set.");
-      return;
-    }
-
+    const title = prompt("Enter a title for this flashcard set:");
+    if (!title) return;
     setSaving(true);
     try {
       const res = await fetch("/api/save-flashcards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: setTitle,
-          description: mode === "youtube" ? `Generated from YouTube: ${youtubeUrl}` : "Generated from text input",
+          title,
+          description: "Generated via Convert tool",
           flashcards,
           userId: user.id,
         }),
@@ -163,54 +140,82 @@ export default function ConvertPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20 pb-10">
-      {/* Background Blobs */}
-      <motion.div
-        className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-500 opacity-20 rounded-full blur-3xl z-0"
-        animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-500 opacity-15 rounded-full blur-3xl z-0"
-        animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
-        transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
-      />
+    <div className="relative min-h-screen bg-[#080808] text-[#f3f3f3] selection:bg-white selection:text-black bg-grain flex flex-col items-center justify-center overflow-hidden pt-28 pb-16 px-4">
+      {/* Background Subtle Atmospheric Glows */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[160px] pointer-events-none" />
 
       {/* Top Navigation */}
-      <header className="absolute top-4 left-4 z-20 w-full pr-8">
-        <Link href="/dashboard" className="glass flex items-center gap-2 text-gray-300 hover:text-white px-3 py-2 rounded-full transition-all hover:bg-white/10 w-fit text-sm md:text-base">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <header className="fixed top-0 left-0 w-full z-50 px-6 sm:px-12 py-6 flex items-center justify-between backdrop-blur-md bg-black/40 border-b border-white/[0.06]">
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="w-10 h-10 rounded-full overflow-hidden border border-white/30 bg-black/60 p-0.5 shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:border-white transition-all group-hover:scale-105 flex items-center justify-center">
+            <img
+              src="/logo_character_strict_hair_edit_3.png"
+              alt="Ankify Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold tracking-[0.25em] uppercase text-white font-cinzel">
+              ANKIFY
+            </span>
+            <span className="text-[9px] tracking-[0.2em] text-neutral-400 font-jp">
+              記憶 • シンセシス
+            </span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-neutral-400 hover:text-white px-5 py-2.5 rounded-full border border-white/10 hover:border-white/30 transition-all backdrop-blur-md bg-white/[0.02]"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="hidden sm:inline">Back to Dashboard</span>
-          <span className="sm:hidden">Dashboard</span>
+          Dashboard
         </Link>
       </header>
 
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="w-full max-w-xl z-10"
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-2xl z-10"
       >
-        <div className="glass-card rounded-3xl p-8 md:p-12 flex flex-col gap-8 relative">
-          <h1 className="text-2xl md:text-3xl font-bold text-white text-center mb-2 drop-shadow-xl">
-            Convert Content to <span className="text-blue-400">Flashcards</span>
-          </h1>
+        <div className="glass-editorial rounded-3xl p-8 sm:p-12 flex flex-col gap-6 relative border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl">
+          <div className="text-center">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-jp block mb-2">
+              自然言語 • 高度抽出
+            </span>
+            <h1 className="text-2xl sm:text-4xl font-light text-white mb-2 tracking-tight">
+              Synthesize <span className="font-serif-editorial italic font-normal text-white">Cards</span>
+            </h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400 font-light max-w-md mx-auto">
+              Transform unstructured source knowledge into atomic recall units.
+            </p>
+          </div>
 
           {/* Tabs */}
-          <div className="flex justify-center gap-2 mb-4 bg-black/20 p-1 rounded-full w-fit mx-auto">
+          <div className="flex justify-center gap-2 bg-white/[0.03] border border-white/10 p-1 rounded-full w-fit mx-auto">
             <button
-              className={`px-6 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none ${mode === "text" ? "bg-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white"}`}
+              className={`px-6 py-2 rounded-full font-medium transition-all text-xs uppercase tracking-[0.15em] focus:outline-none ${
+                mode === "text"
+                  ? "bg-white text-black shadow-lg font-semibold"
+                  : "text-neutral-400 hover:text-white"
+              }`}
               onClick={() => setMode("text")}
             >
-              Text Input
+              Text Stream
             </button>
             <button
-              className={`px-6 py-2 rounded-full font-semibold transition-all text-sm md:text-base focus:outline-none ${mode === "youtube" ? "bg-red-600 text-white shadow-lg" : "text-gray-400 hover:text-white"}`}
+              className={`px-6 py-2 rounded-full font-medium transition-all text-xs uppercase tracking-[0.15em] focus:outline-none ${
+                mode === "youtube"
+                  ? "bg-white text-black shadow-lg font-semibold"
+                  : "text-neutral-400 hover:text-white"
+              }`}
               onClick={() => setMode("youtube")}
             >
-              YouTube
+              YouTube URL
             </button>
           </div>
 
@@ -223,8 +228,8 @@ export default function ConvertPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="w-full min-h-[160px] rounded-2xl border border-white/10 bg-slate-900/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent p-5 text-gray-100 text-base resize-none transition-all shadow-inner placeholder-gray-500"
-                placeholder="Paste your lecture notes, article, or summary here..."
+                className="w-full min-h-[180px] rounded-2xl border border-white/10 bg-white/[0.02] focus:border-white/40 focus:ring-1 focus:ring-white/20 p-5 text-neutral-100 text-sm font-light resize-none transition-all placeholder-neutral-500 leading-relaxed outline-none"
+                placeholder="Paste comprehensive notes, dense research articles, or lecture summaries here..."
                 value={text}
                 onChange={e => setText(e.target.value)}
               />
@@ -236,30 +241,31 @@ export default function ConvertPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="w-full rounded-2xl border border-white/10 bg-slate-900/50 focus:ring-2 focus:ring-red-500 focus:border-transparent p-5 text-gray-100 text-base transition-all shadow-inner placeholder-gray-500"
-                placeholder="Paste a YouTube video URL..."
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.02] focus:border-white/40 focus:ring-1 focus:ring-white/20 p-5 text-neutral-100 text-sm font-light transition-all placeholder-neutral-500 outline-none"
+                placeholder="https://www.youtube.com/watch?v=..."
                 value={youtubeUrl}
                 onChange={e => setYoutubeUrl(e.target.value)}
               />
             )}
           </AnimatePresence>
 
-          <motion.button
-            whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(59, 130, 246, 0.5)" }}
-            whileTap={{ scale: 0.98 }}
-            className={`w-full font-bold rounded-2xl py-4 text-lg shadow-xl transition-all duration-300 ring-1 ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed ${mode === 'youtube' ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500'} text-white`}
+          <button
+            className="w-full font-medium rounded-full py-4 text-xs uppercase tracking-[0.2em] shadow-[0_0_25px_rgba(255,255,255,0.15)] transition-all duration-300 bg-white hover:bg-neutral-200 text-black disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleGenerate}
             disabled={loading || (mode === "text" ? !text.trim() : !youtubeUrl.trim())}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-3">
-                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
-                {mode === "youtube" ? "Transcribing Video... (this may take a moment)" : "Generating Flashcards..."}
+                <svg className="animate-spin h-4 w-4 text-black" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                {mode === "youtube" ? "Extracting Video Transcript..." : "Synthesizing Cards with AI..."}
               </span>
             ) : (
               "Generate Flashcards"
             )}
-          </motion.button>
+          </button>
 
           {/* Warnings/Errors */}
           <AnimatePresence>
@@ -293,44 +299,24 @@ export default function ConvertPage() {
             <div className="glass-card rounded-3xl p-8 md:p-12 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
 
-              <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-                <div className="flex-1 w-full max-w-md">
-                  <label htmlFor="set-title" className="block text-blue-400 text-xs font-bold tracking-widest uppercase mb-2 ml-1">
-                    Set Title
-                  </label>
-                  <input
-                    id="set-title"
-                    type="text"
-                    className="w-full bg-slate-900/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 transition-all"
-                    placeholder="Enter a title to save..."
-                    value={setTitle}
-                    onChange={(e) => setSetTitle(e.target.value)}
-                  />
+              <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                <div className="text-neutral-400 font-mono text-xs uppercase tracking-[0.2em] bg-white/[0.04] px-4 py-2 rounded-full border border-white/10">
+                  Index {currentCard + 1} / {flashcards.length}
                 </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                  <div className="text-gray-400 font-medium text-xs whitespace-nowrap px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                    {flashcards.length} Cards
-                  </div>
-                  <div className="flex gap-2 flex-1 md:flex-none">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 px-4 py-2 rounded-full border border-emerald-500/30 transition-colors text-xs md:text-sm"
-                      onClick={downloadAnkiFile}
-                    >
-                      Export
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg shadow-blue-900/30 text-xs md:text-sm"
-                      onClick={handleSave}
-                      disabled={saving}
-                    >
-                      {saving ? "..." : "Save"}
-                    </motion.button>
-                  </div>
+                <div className="flex gap-3">
+                  <button
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white text-white hover:text-black px-5 py-2 rounded-full border border-white/20 transition-all text-xs uppercase tracking-[0.15em] font-medium"
+                    onClick={downloadAnkiFile}
+                  >
+                    Export Anki (.txt)
+                  </button>
+                  <button
+                    className="flex items-center gap-2 bg-white hover:bg-neutral-200 text-black px-5 py-2 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all text-xs uppercase tracking-[0.15em] font-semibold"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving Vault..." : "Save to Vault"}
+                  </button>
                 </div>
               </div>
 
@@ -344,12 +330,12 @@ export default function ConvertPage() {
                 >
                   {/* Front */}
                   <div className="absolute inset-0 backface-hidden">
-                    <div className="h-full w-full bg-slate-800 rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center text-center border border-white/10 shadow-2xl group-hover:border-blue-500/30 transition-colors">
-                      <span className="text-blue-400 text-[10px] md:text-xs font-bold tracking-widest uppercase mb-4 md:mb-6">Question</span>
-                      <p className="text-white text-xl md:text-3xl font-medium leading-relaxed break-words line-clamp-6">
+                    <div className="h-full w-full bg-[#121212] rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all">
+                      <span className="text-neutral-500 text-xs font-mono tracking-[0.2em] uppercase mb-6">Question • 問い</span>
+                      <p className="text-white text-2xl md:text-3xl font-light leading-relaxed">
                         {flashcards[currentCard]?.question}
                       </p>
-                      <span className="text-gray-500 text-sm mt-auto">Click to reveal</span>
+                      <span className="text-neutral-600 text-xs font-mono mt-auto uppercase tracking-widest">Click to reveal</span>
                     </div>
                   </div>
 
@@ -358,12 +344,12 @@ export default function ConvertPage() {
                     className="absolute inset-0 backface-hidden"
                     style={{ transform: "rotateY(180deg)" }}
                   >
-                    <div className="h-full w-full bg-slate-900 rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-blue-500/30 shadow-2xl shadow-blue-900/20">
-                      <span className="text-emerald-400 text-xs font-bold tracking-widest uppercase mb-6">Answer</span>
-                      <p className="text-gray-100 text-xl md:text-2xl leading-relaxed">
+                    <div className="h-full w-full bg-[#0d0d0d] rounded-3xl p-10 flex flex-col items-center justify-center text-center border border-white/25 shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+                      <span className="text-neutral-400 text-xs font-mono tracking-[0.2em] uppercase mb-6">Answer • 記憶</span>
+                      <p className="text-neutral-100 text-xl md:text-2xl font-light leading-relaxed">
                         {flashcards[currentCard]?.answer}
                       </p>
-                      <span className="text-gray-500 text-sm mt-auto">Click to flip back</span>
+                      <span className="text-neutral-600 text-xs font-mono mt-auto uppercase tracking-widest">Click to flip back</span>
                     </div>
                   </div>
                 </motion.div>
