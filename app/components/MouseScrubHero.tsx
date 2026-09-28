@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 const SENSITIVITY = 0.85;
 
@@ -149,44 +148,26 @@ export function MouseScrubHero() {
 
   return (
     <section className="relative w-full h-screen min-h-[640px] flex flex-col justify-end md:justify-center pb-14 md:pb-0 px-6 sm:px-12 md:px-16 overflow-hidden select-none">
-      {/* 1. Background Video with mouse scrub tracking - positioned gracefully to the right side */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <video
-          ref={videoRef}
-          muted
-          playsInline
-          preload="auto"
-          className="absolute right-0 top-1/2 -translate-y-1/2 h-[75%] sm:h-[80%] md:h-[85%] lg:h-[90%] max-w-[55%] object-contain pointer-events-none drop-shadow-[0_20px_60px_rgba(255,255,255,0.08)]"
-          style={{
-            transform: "translateY(-50%)",
-            filter: "contrast(105%) brightness(102%)",
-          }}
-        >
-          <source src="/video/kling_animate.mp4" type="video/mp4" />
-        </video>
-      </div>
-
-      {/* 2. Soft Ambient Beam Glow behind the character on the right */}
+      {/* 1. Fullscreen Custom Background from video_background_16x9.png */}
       <div
-        className="absolute top-1/2 right-[8%] -translate-y-1/2 w-[380px] h-[380px] sm:w-[460px] sm:h-[460px] rounded-full pointer-events-none"
+        className="absolute inset-0 pointer-events-none bg-cover bg-center"
         style={{
-          zIndex: 1,
-          background: "radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 70%)",
-          filter: "blur(60px)",
+          zIndex: 0,
+          backgroundImage: "url('/video/video_background_16x9.png')",
         }}
       />
 
-      {/* 3. Subtle edge gradient ensuring text legibility on the left */}
+      {/* 2. Gradient overlay: Dark on the left for maximum text readability and smooth transition */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
           background:
-            "linear-gradient(to right, rgba(8,8,8,0.98) 0%, rgba(8,8,8,0.85) 40%, rgba(8,8,8,0.2) 70%, transparent 100%)",
+            "linear-gradient(to right, rgba(8,8,8,0.96) 0%, rgba(8,8,8,0.85) 40%, rgba(8,8,8,0.3) 75%, rgba(8,8,8,0.05) 100%)",
         }}
       />
 
-      {/* 4. Bottom subtle fade into the next section */}
+      {/* 3. Bottom subtle fade into the next section */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
         style={{
@@ -194,6 +175,34 @@ export function MouseScrubHero() {
           background: "linear-gradient(to bottom, transparent, #080808)",
         }}
       />
+
+      {/* 4. Transparent Background 3D Character Video - Cleanly sized and situated on the right side */}
+      <div
+        className="absolute right-4 sm:right-12 md:right-16 lg:right-24 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none"
+        style={{ zIndex: 5 }}
+      >
+        {/* Soft Ambient Radiance behind the transparent character */}
+        <div
+          className="absolute w-[260px] h-[260px] sm:w-[340px] sm:h-[340px] md:w-[400px] md:h-[400px] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 45%, transparent 70%)",
+            filter: "blur(50px)",
+          }}
+        />
+
+        {/* The video element with transparent background (no white box, no watermark) */}
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          preload="auto"
+          className="relative w-[240px] sm:w-[320px] md:w-[380px] lg:w-[440px] aspect-square object-contain drop-shadow-[0_20px_45px_rgba(255,255,255,0.15)] filter contrast-105"
+        >
+          <source src="/video/character_transparent.webm" type="video/webm" />
+          <source src="/video/kling_animate.mp4" type="video/mp4" />
+        </video>
+      </div>
 
       {/* 5. Left Hero Content */}
       <div className="max-w-xl sm:max-w-2xl relative z-10">
