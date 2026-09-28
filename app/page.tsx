@@ -230,24 +230,22 @@ export default function Home() {
     <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain overflow-x-hidden">
       {/* Top Navigation Bar */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 sm:px-12 py-5 flex items-center justify-between backdrop-blur-md bg-black/60 border-b border-white/[0.06]">
-        {/* Brand Logo & Subtle CJK Watermark */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 bg-black/60 p-0.5 shadow-sm group-hover:border-white transition-all group-hover:scale-105 flex items-center justify-center">
-            <img
-              src="/logo_character.png"
-              alt="Ankify Logo"
-              className="w-full h-full object-contain rounded-full"
-            />
-          </div>
+        {/* Brand Logo & Character Head (Direct, without circle, slightly larger) */}
+        <Link href="/" className="flex items-center gap-3.5 group select-none">
+          <img
+            src="/logo_character.png"
+            alt="Ankify Character Logo"
+            className="w-10 h-10 sm:w-11 sm:h-11 object-contain drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)] group-hover:scale-105 transition-transform"
+          />
           <div className="flex items-center gap-2">
             <span
-              className="text-base sm:text-lg tracking-tight text-white font-medium"
+              className="text-xl sm:text-2xl tracking-tight text-white font-medium"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Ankify®
             </span>
             <span
-              className="text-white text-lg select-none leading-none opacity-80"
+              className="text-white text-xl sm:text-2xl select-none leading-none opacity-90"
               style={{ letterSpacing: "-0.02em" }}
             >
               ✳︎

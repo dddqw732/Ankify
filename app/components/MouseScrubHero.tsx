@@ -149,32 +149,44 @@ export function MouseScrubHero() {
 
   return (
     <section className="relative w-full h-screen min-h-[640px] flex flex-col justify-end md:justify-center pb-14 md:pb-0 px-6 sm:px-12 md:px-16 overflow-hidden select-none">
-      {/* 1. Background Video with mouse scrub tracking */}
-      <video
-        ref={videoRef}
-        muted
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        style={{
-          zIndex: 0,
-          objectPosition: "75% center",
-        }}
-      >
-        <source src="/video/kling_animate.mp4" type="video/mp4" />
-      </video>
+      {/* 1. Background Video with mouse scrub tracking - positioned gracefully to the right side */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          preload="auto"
+          className="absolute right-0 top-1/2 -translate-y-1/2 h-[75%] sm:h-[80%] md:h-[85%] lg:h-[90%] max-w-[55%] object-contain pointer-events-none drop-shadow-[0_20px_60px_rgba(255,255,255,0.08)]"
+          style={{
+            transform: "translateY(-50%)",
+            filter: "contrast(105%) brightness(102%)",
+          }}
+        >
+          <source src="/video/kling_animate.mp4" type="video/mp4" />
+        </video>
+      </div>
 
-      {/* 2. Gradient overlay: Dark on left for razor-sharp text, transparent on right for the 3D character */}
+      {/* 2. Soft Ambient Beam Glow behind the character on the right */}
+      <div
+        className="absolute top-1/2 right-[8%] -translate-y-1/2 w-[380px] h-[380px] sm:w-[460px] sm:h-[460px] rounded-full pointer-events-none"
+        style={{
+          zIndex: 1,
+          background: "radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 70%)",
+          filter: "blur(60px)",
+        }}
+      />
+
+      {/* 3. Subtle edge gradient ensuring text legibility on the left */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
           background:
-            "linear-gradient(to right, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.72) 35%, rgba(8,8,8,0.2) 65%, rgba(8,8,8,0.02) 100%)",
+            "linear-gradient(to right, rgba(8,8,8,0.98) 0%, rgba(8,8,8,0.85) 40%, rgba(8,8,8,0.2) 70%, transparent 100%)",
         }}
       />
 
-      {/* 3. Bottom subtle fade into the next section */}
+      {/* 4. Bottom subtle fade into the next section */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
         style={{
@@ -183,7 +195,7 @@ export function MouseScrubHero() {
         }}
       />
 
-      {/* 4. Left Hero Content */}
+      {/* 5. Left Hero Content */}
       <div className="max-w-xl sm:max-w-2xl relative z-10">
         {/* Blurred intro label */}
         <p

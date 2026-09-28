@@ -9,7 +9,9 @@ export const metadata: Metadata = {
   title: "Ankify AI - AI-Powered Flashcard Generator",
   description: "Convert any text or video into smart flashcards using AI. Export to Anki and boost your learning.",
   icons: {
-    icon: "/app-icon.svg",
+    icon: "/logo_character.png",
+    shortcut: "/logo_character.png",
+    apple: "/logo_character.png",
   },
 };
 
@@ -21,6 +23,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/png" href="/logo_character.png" />
+        <link rel="apple-touch-icon" href="/logo_character.png" />
         <link
           rel="stylesheet"
           href="https://db.onlinewebfonts.com/c/5ac3fe7c6abd2f62067f266d89671492?family=HelveticaNowDisplay-Medium"
