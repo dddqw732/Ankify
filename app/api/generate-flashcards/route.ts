@@ -3,26 +3,102 @@ import OpenAI from "openai";
 
 import axios from "axios";
 
-const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator that helps students create flashcards that help them remember facts, concepts, and ideas from videos. You will be given a video or document or snippet.
+const ANKI_SYSTEM_PROMPT = `You are a world-class Anki flashcard creator. Your goal is to extract key facts and concepts and format them as flashcards.
 
-1. Identify key high-level concepts and ideas presented, including relevant equations. If the video is math or physics-heavy, focus on concepts. If the video isn't heavy on concepts, focus on facts.
-2. Then use your own knowledge of the concept, ideas, or facts to flesh out any additional details (eg, relevant facts, dates, and equations) to ensure the flashcards are self-contained.
-3. Make question-answer cards based on the content.
-4. Keep the questions and answers roughly in the same order as they appear in the content itself.
-5. If a video is provided, include timestamps in the question field in [ ] brackets at the end of the questions to the segment of the video that's relevant.
+STRICT OUTPUT RULES:
+1. Format: Question | Answer
+2. Exactly one flashcard per line.
+3. Use the pipe symbol (|) as the ONLY separator.
+4. NO numbering (e.g., skip "1. ", "Card 1:").
+5. NO headers, NO "Question:" or "Answer:" labels.
+6. NO bolding of the separator or keys.
+7. Wrap math in \\( ... \\) for inline or \\[ ... \\] for block.
+8. Wrap chemistry in \\( \\ce{...} \\).
 
-Output Format:
-- Do not have the first row being "Question" and "Answer".
-- Each flashcard should be on a new line and use the pipe separator | to separate the question and answer.
-- Do not number the cards or add prefixes like "Card 1:".
-- When writing math, wrap any math with the \\( ... \\) tags [eg, \\( a^2+b^2=c^2 \\) ] . By default this is inline math. For block math, use \\[ ... \\]. Decide when formatting each card.
-- When writing chemistry equations, use the format \\( \\ce{C6H12O6 + 6O2 -> 6H2O + 6CO2} \\) where the \\ce is required for MathJax chemistry.`;
+Example Output:
+What is the speed of light? | Approximately 299,792,458 meters per second.
+What are the three laws of thermodynamics? | 1. Energy cannot be created or destroyed. 2. Entropy always increases. 3. Entropy approaches a constant at absolute zero.`;
 
 
+
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export const maxDuration = 60; // Allow 60 seconds for execution (Vercel Pro/Hobby limits apply)
 
 export async function POST(req: NextRequest) {
+  // 1. Authenticate User
+  const cookieStore = await cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore as any })
+
+  // Try cookie first, then Bearer token
+  let user = null;
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session) {
+    user = session.user;
+  } else {
+    // Check for Bearer token
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      const { data: { user: tokenUser } } = await supabase.auth.getUser(token);
+      user = tokenUser;
+    }
+  }
+
+  // 2. Check Usage Limits (if user exists)
+  if (user) {
+    // Check subscription
+    const { data: subscription } = await supabase
+      .from('user_subscriptions')
+      .select('plan_name, status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+
+    const isPro = subscription && (subscription.plan_name === 'Pro' || subscription.plan_name === 'Pro Plan');
+
+    if (!isPro) {
+      // Check usage count for Free tier
+      const { data: usage } = await supabase
+        .from('user_usage')
+        .select('usage_count')
+        .eq('user_id', user.id)
+        .eq('feature_name', 'flashcard_generation')
+        .single();
+
+      const currentUsage = usage?.usage_count || 0;
+
+      // Free limit: 3 generations
+      if (currentUsage >= 3) {
+        return NextResponse.json({
+          error: "You have reached the free limit of 3 generations. Please upgrade to continue used Ankify."
+        }, { status: 403 });
+      }
+
+      // Increment usage
+      const newUsage = currentUsage + 1;
+      const { error: usageError } = await supabase
+        .from('user_usage')
+        .upsert({
+          user_id: user.id,
+          feature_name: 'flashcard_generation',
+          usage_count: newUsage,
+          last_used_at: new Date().toISOString()
+        }, { onConflict: 'user_id, feature_name' });
+
+      if (usageError) {
+        console.error('Error updating usage:', usageError);
+      }
+    }
+  } else {
+    // Enforce authentication for all requests to ensure usage tracking
+    return NextResponse.json({
+      error: "Please sign in to the extension to generate flashcards."
+    }, { status: 401 });
+  }
+
   const { type, value } = await req.json();
 
   let transcript = "";

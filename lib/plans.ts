@@ -1,7 +1,7 @@
 export const PLANS = [
   {
     id: 'small',
-    name: 'Small',
+    name: 'Small balls',
     description: 'Basic access for light users',
     price: '$5/mo',
     variantId: '568246',
@@ -9,10 +9,11 @@ export const PLANS = [
       'Up to 100 flashcards/month',
       'Basic support',
     ],
+    paypalPlanId: 'P-1YL91830UD0783248NFO6KQQ',
   },
   {
     id: 'mid',
-    name: 'Mid',
+    name: 'Mid balls',
     description: 'For regular learners',
     price: '$10/mo',
     variantId: '568257',
@@ -20,10 +21,11 @@ export const PLANS = [
       'Up to 500 flashcards/month',
       'Priority support',
     ],
+    paypalPlanId: 'P-2L5082960S3726455NFO6LIA',
   },
   {
     id: 'big',
-    name: 'Big',
+    name: 'Big balls',
     description: 'Unlimited for power users',
     price: '$20/mo',
     variantId: '568260',
@@ -31,5 +33,6 @@ export const PLANS = [
       'Unlimited flashcards',
       'Premium support',
     ],
+    paypalPlanId: 'P-3A98092416074601FNFO6MAQ',
   },
 ]; 
