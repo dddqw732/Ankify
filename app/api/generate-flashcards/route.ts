@@ -102,24 +102,23 @@ export async function POST(req: NextRequest) {
 
       let errorMessage = "Failed to process YouTube video: ";
       if (err.response) {
-        // API error response
         const status = err.response.status;
         const data = err.response.data;
-        if (status === 401 || status === 403) {
-          errorMessage += "Authentication failed. Please check your TranscriptAPI key.";
+        if (status === 402) {
+          errorMessage = "TranscriptAPI error (402): Your TranscriptAPI account has no active paid plan. Please activate a plan at https://transcriptapi.com/billing or provide transcripts via Text input.";
+        } else if (status === 401 || status === 403) {
+          errorMessage = "TranscriptAPI authentication failed. Please verify your TRANSCRIPT_API_KEY.";
         } else if (status === 404) {
-          errorMessage += "Video not found or transcript unavailable.";
+          errorMessage = "Video not found or transcript unavailable for this YouTube video.";
         } else if (status === 429) {
-          errorMessage += "Rate limit exceeded. Please try again later.";
+          errorMessage = "TranscriptAPI rate limit exceeded. Please try again shortly.";
         } else {
-          errorMessage += data?.message || data?.error || `API error (${status})`;
+          errorMessage = data?.detail?.message || data?.message || data?.error || `TranscriptAPI error (${status})`;
         }
-      } else if (err.message.includes("timeout")) {
-        errorMessage += "Processing timed out. Please try again or use a shorter video.";
-      } else if (err.message.includes("transcribed") || err.message.includes("speech")) {
-        errorMessage += "No clear speech detected. Try a video with clear narration or dialogue.";
+      } else if (err.message && err.message.includes("timeout")) {
+        errorMessage = "Processing timed out. Please try again or use a shorter video.";
       } else {
-        errorMessage += err.message || "Unknown error occurred.";
+        errorMessage = err.message || "Unknown error occurred while processing YouTube video.";
       }
 
       return NextResponse.json({ error: errorMessage }, { status: 500 });
@@ -131,18 +130,18 @@ export async function POST(req: NextRequest) {
   try {
     const openaiApiKey = process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
-      return NextResponse.json({ error: "OpenAI API key is not configured." }, { status: 500 });
+      return NextResponse.json({ error: "OpenAI API key is missing. Set OPENAI_API_KEY in .env.local" }, { status: 500 });
     }
 
     const openai = new OpenAI({ apiKey: openaiApiKey });
     console.log("Starting OpenAI completion...");
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: ANKI_SYSTEM_PROMPT },
         { role: "user", content: prompt },
       ],
-      max_tokens: 800,
+      max_tokens: 1200,
       temperature: 0.7,
     });
     const aiResult = completion.choices[0]?.message?.content || "No response from AI.";
@@ -150,6 +149,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result: aiResult });
   } catch (err: any) {
     console.error("OpenAI error:", err);
-    return NextResponse.json({ error: err.message || "OpenAI API error" }, { status: 500 });
+    let friendlyError = err.message || "OpenAI API error";
+    if (err.status === 429 || (err.message && err.message.includes("quota") || err.message.includes("credits"))) {
+      friendlyError = "OpenAI Error (429): Your OpenAI account has 0 remaining credits or has exceeded its quota. Please add balance at https://platform.openai.com/settings/organization/billing or provide a new key.";
+    }
+    return NextResponse.json({ error: friendlyError }, { status: 500 });
   }
 } 

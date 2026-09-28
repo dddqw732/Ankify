@@ -1,134 +1,127 @@
 "use client";
+
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { PLANS } from "@/lib/plans";
-import { DemoAnimation } from "./components/DemoAnimation";
+import { MouseScrubHero } from "./components/MouseScrubHero";
+import { WorkflowSection } from "./components/WorkflowSection";
+import { SynthesizeSection } from "./components/SynthesizeSection";
+import {
+  Floating3DCard,
+  FloatingStar,
+  FloatingNotebook,
+} from "./components/Decorative3DObjects";
 
 const features = [
   {
+    jp: "知能化",
+    kr: "지능化",
     title: "AI-Powered Flashcards",
-    description: "Automatically generate smart flashcards from long texts or videos.",
+    description:
+      "Synthesize dense literature, scientific documentation, or lecture streams into precise atomic Anki cards.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+      <svg
+        className="w-5 h-5 text-white"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 4.5v15m7.5-7.5h-15"
+        />
+      </svg>
     ),
   },
   {
-    title: "Export to Anki",
-    description: "Seamlessly export your flashcards to Anki for efficient study.",
+    jp: "同調性",
+    kr: "동기화",
+    title: "Direct Anki Ecosystem",
+    description:
+      "Export clean TSV / APKG formats calibrated with MathJax, LaTeX formulas, and chemistry notations.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v1.5M3 7.5v10.125A2.375 2.375 0 005.375 20h13.25A2.375 2.375 0 0021 17.625V7.5M3 7.5h18" /></svg>
+      <svg
+        className="w-5 h-5 text-white"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3 7.5V6a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 6v1.5M3 7.5v10.125A2.375 2.375 0 005.375 20h13.25A2.375 2.375 0 0021 17.625V7.5M3 7.5h18"
+        />
+      </svg>
     ),
   },
   {
-    title: "Supports Text & Video",
-    description: "Upload documents or video files and let AI do the rest.",
+    jp: "多面的",
+    kr: "다차원",
+    title: "Multimodal Video & Text",
+    description:
+      "Process live YouTube URLs, timestamped lecture transcripts, and complex research PDFs in seconds.",
     icon: (
-      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0v10.5A2.25 2.25 0 0113.5 21h-3A2.25 2.25 0 018.25 19.5V9m7.5 0h-9" /></svg>
+      <svg
+        className="w-5 h-5 text-white"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3A2.25 2.25 0 008.25 5.25V9m7.5 0v10.5A2.25 2.25 0 0113.5 21h-3A2.25 2.25 0 018.25 19.5V9m7.5 0h-9"
+        />
+      </svg>
     ),
   },
 ];
 
 const steps = [
   {
-    title: "Upload Content",
-    description: "Add your long text or video file in seconds.",
+    step: "01",
+    tag: "インプット / 입력",
+    title: "Ingest Your Material",
+    description: "Paste a lecture script, YouTube link, or raw theoretical notes.",
   },
   {
-    title: "AI Generates Flashcards",
-    description: "Our advanced AI instantly creates smart, effective flashcards for you.",
+    step: "02",
+    tag: "抽出 / 추론",
+    title: "Atomic Fact Extraction",
+    description:
+      "Neural models identify cognitive primitives and construct testable queries.",
   },
   {
-    title: "Export & Study",
-    description: "Export to Anki and start mastering your material!",
+    step: "03",
+    tag: "定着 / 완성",
+    title: "Sync with Spaced Repetition",
+    description:
+      "Export instantly into Anki and achieve flawless recall without study fatigue.",
   },
 ];
 
-const testimonials = [
+const quotes = [
   {
-    name: "Sarah K.",
-    text: "Flashcards AI saved me hours of study prep! The flashcards are spot-on and super helpful.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    quote:
+      "Turned 40-page neurology research papers into master-level Anki decks in 30 seconds.",
+    author: "K. Takahashi",
+    affiliation: "Kyoto University",
+    cjk: "高橋 研",
   },
   {
-    name: "James L.",
-    text: "I love how easy it is to turn my lecture videos into Anki cards. Game changer!",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    name: "Dr. Emily Tran",
-    text: "As an educator, this tool helps my students focus on what matters most. Highly recommended!",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-  },
-];
-
-const socialProof = [
-  "Harvard",
-  "MIT",
-  "Stanford",
-  "Oxford",
-  "Yale",
-  "UCLA",
-];
-
-const shareLinks = [
-  {
-    name: "Twitter",
-    url: "https://twitter.com/intent/tweet?text=Check%20out%20Flashcards%20AI%20to%20turn%20any%20text%20or%20video%20into%20smart%20flashcards!%20https://flashcardsai.com",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.633 7.997c.013.176.013.353.013.53 0 5.39-4.104 11.61-11.61 11.61-2.307 0-4.453-.676-6.26-1.84.32.038.637.05.97.05 1.92 0 3.687-.65 5.096-1.747-1.793-.037-3.308-1.217-3.833-2.847.25.037.5.062.763.062.37 0 .74-.05 1.085-.144-1.87-.375-3.28-2.03-3.28-4.017v-.05c.55.306 1.18.49 1.85.513a4.07 4.07 0 01-1.81-3.39c0-.75.2-1.45.55-2.05a11.62 11.62 0 008.42 4.27c-.062-.3-.1-.6-.1-.92 0-2.22 1.8-4.02 4.02-4.02 1.16 0 2.22.487 2.96 1.27a7.97 7.97 0 002.56-.98 4.01 4.01 0 01-1.77 2.22 8.04 8.04 0 002.31-.62 8.6 8.6 0 01-2.01 2.09z" /></svg>
-    ),
-  },
-  {
-    name: "Facebook",
-    url: "https://www.facebook.com/sharer/sharer.php?u=https://flashcardsai.com",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.406.595 24 1.326 24H12.82v-9.294H9.692v-3.622h3.127V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.92.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.406 24 22.674V1.326C24 .592 23.406 0 22.675 0" /></svg>
-    ),
-  },
-  {
-    name: "LinkedIn",
-    url: "https://www.linkedin.com/shareArticle?mini=true&url=https://flashcardsai.com&title=Flashcards%20AI&summary=Turn%20any%20text%20or%20video%20into%20smart%20flashcards!",
-    icon: (
-      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11.75 20h-3v-10h3v10zm-1.5-11.27c-.97 0-1.75-.79-1.75-1.76s.78-1.76 1.75-1.76c.97 0 1.75.79 1.75 1.76s-.78 1.76-1.75 1.76zm15.25 11.27h-3v-5.6c0-1.34-.03-3.07-1.87-3.07-1.87 0-2.16 1.46-2.16 2.97v5.7h-3v-10h2.88v1.36h.04c.4-.75 1.38-1.54 2.84-1.54 3.04 0 3.6 2 3.6 4.59v5.59z" /></svg>
-    ),
+    quote:
+      "The cleanest study workflow ever built. No distractions, just pure retention architecture.",
+    author: "Min-Jun Park",
+    affiliation: "KAIST AI Lab",
+    cjk: "박민준",
   },
 ];
-
-const changingTexts = [
-  "instantly",
-  "effortlessly",
-  "intelligently",
-  "automatically",
-];
-
-// Particle component with fixed positions to prevent hydration mismatch
-const Particle = ({ delay, index }: { delay: number; index: number }) => {
-  // Use deterministic positions based on index to prevent hydration mismatch
-  const leftPosition = ((index * 17.3) % 100);
-
-  return (
-    <motion.div
-      className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
-      animate={{
-        y: [0, -100, -200, -300, -400],
-        x: [0, 30, -20, 10, -5],
-        opacity: [0, 1, 1, 1, 0],
-      }}
-      transition={{
-        duration: 8,
-        delay,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-      style={{
-        left: `${leftPosition}%`,
-        bottom: -10,
-      }}
-    />
-  );
-};
 
 function SubscriptionPlans({ user }: { user: any }) {
   const [loading, setLoading] = useState<string | null>(null);
@@ -137,43 +130,92 @@ function SubscriptionPlans({ user }: { user: any }) {
     setLoading(variantId);
     try {
       const email = user?.email;
-      if (!email) throw new Error("You must be signed in to subscribe.");
+      if (!email) {
+        alert("You must be signed in to subscribe. Redirecting to sign in...");
+        window.location.href = "/auth";
+        return;
+      }
       const returnUrl = window.location.origin + "/dashboard";
-      const res = await fetch('/api/lemonsqueezy/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/lemonsqueezy/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId, email, returnUrl }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
+      if (!res.ok) throw new Error(data.error || "Checkout currently unavailable");
       window.location.href = data.url;
-    } catch (err) {
-      alert("Failed to start checkout: " + (err as any).message);
+    } catch (err: any) {
+      alert("Payment Gateway Notice: " + err.message);
     } finally {
       setLoading(null);
     }
   };
 
   return (
-    <section className="max-w-4xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10" id="plans">
-      <h2 className="text-3xl font-bold text-white mb-8">Subscription Plans</h2>
+    <section className="max-w-6xl mx-auto w-full py-24 px-6 relative z-10" id="plans">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6 }}
+        className="text-center mb-16"
+      >
+        <div className="flex items-center justify-center gap-3 text-xs tracking-[0.3em] uppercase text-white/50 mb-3">
+          <span className="font-jp">会員プラン</span>
+          <span>•</span>
+          <span className="font-kr">멤버십 플랜</span>
+        </div>
+        <h2 className="text-4xl md:text-5xl font-serif-editorial text-white tracking-tight">
+          Curated Membership
+        </h2>
+      </motion.div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {PLANS.map((plan) => (
-          <div key={plan.id} className="glass-card rounded-2xl p-8 flex flex-col items-center border-t border-white/10">
-            <h3 className="text-xl font-bold text-blue-400 mb-2">{plan.name}</h3>
-            <div className="text-2xl font-bold text-white mb-2">{plan.price}</div>
-            <div className="text-gray-300 mb-4">{plan.description}</div>
-            <ul className="text-gray-400 text-sm mb-6 text-left list-disc list-inside">
-              {plan.features.map((f, i) => <li key={i}>{f}</li>)}
-            </ul>
+        {PLANS.map((plan, i) => (
+          <motion.div
+            key={plan.id}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, delay: i * 0.12 }}
+            className="glass-editorial rounded-2xl p-8 flex flex-col justify-between border border-white/10 hover:border-white/25 transition-all duration-300 relative group"
+          >
+            {i === 1 && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] uppercase font-bold tracking-[0.2em] px-3 py-1 rounded-full shadow-lg">
+                Popular • 標準
+              </div>
+            )}
+            <div>
+              <div className="flex justify-between items-baseline mb-4">
+                <h3 className="text-xl font-medium text-white tracking-wide">
+                  {plan.name}
+                </h3>
+                <span className="text-2xl font-serif-editorial text-white">
+                  {plan.price}
+                </span>
+              </div>
+              <p className="text-sm text-neutral-400 mb-6 font-light">
+                {plan.description}
+              </p>
+              <div className="h-px w-full bg-white/10 mb-6" />
+              <ul className="space-y-3 mb-8 text-sm text-neutral-300">
+                {plan.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-center gap-3">
+                    <span className="w-1 h-1 rounded-full bg-white/60" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-medium transition-colors disabled:opacity-60"
               onClick={() => handleSubscribe(plan.variantId)}
               disabled={loading === plan.variantId}
+              className="w-full py-3.5 px-6 rounded-full text-xs uppercase tracking-[0.2em] font-medium transition-all duration-300 bg-white/10 hover:bg-white text-white hover:text-black border border-white/20 hover:border-white cursor-pointer"
             >
-              {loading === plan.variantId ? "Redirecting..." : "Subscribe"}
+              {loading === plan.variantId ? "Processing..." : "Select Plan"}
             </button>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>
@@ -181,363 +223,311 @@ function SubscriptionPlans({ user }: { user: any }) {
 }
 
 export default function Home() {
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTextIndex((prev) => (prev + 1) % changingTexts.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col relative overflow-hidden">
-      {/* Moving Particles Background */}
-      {Array.from({ length: 50 }).map((_, i) => (
-        <Particle key={i} delay={i * 0.3} index={i} />
-      ))}
+    <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain overflow-x-hidden">
+      {/* Top Navigation Bar */}
+      <header className="fixed top-0 left-0 w-full z-50 px-6 sm:px-12 py-5 flex items-center justify-between backdrop-blur-md bg-black/60 border-b border-white/[0.06]">
+        {/* Brand Logo & Subtle CJK Watermark */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 bg-black/60 p-0.5 shadow-sm group-hover:border-white transition-all group-hover:scale-105 flex items-center justify-center">
+            <img
+              src="/logo_character.png"
+              alt="Ankify Logo"
+              className="w-full h-full object-contain rounded-full"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-base sm:text-lg tracking-tight text-white font-medium"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Ankify®
+            </span>
+            <span
+              className="text-white text-lg select-none leading-none opacity-80"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              ✳︎
+            </span>
+          </div>
+        </Link>
 
-      {/* Header */}
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full py-6 px-6 md:px-12 flex justify-between items-center bg-transparent relative z-20"
-      >
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="text-2xl font-bold text-white tracking-tight"
-        >
-          Flashcards <span className="text-blue-500 text-glow">AI</span>
-        </motion.div>
-        <nav className="hidden md:flex gap-8">
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#features"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            Features
-          </motion.a>
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#how-it-works"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            How it Works
-          </motion.a>
-          <motion.a
-            whileHover={{ y: -2 }}
-            href="#testimonials"
-            className="text-gray-300 hover:text-blue-400 transition-colors"
-          >
-            Reviews
-          </motion.a>
+        {/* Desktop Links */}
+        <nav className="hidden md:flex items-center gap-8 text-xs tracking-[0.2em] uppercase text-neutral-400">
+          <a href="#workflow" className="hover:text-white transition-colors">
+            Workflow
+          </a>
+          <a href="#features" className="hover:text-white transition-colors">
+            Architecture
+          </a>
+          <a href="#how-it-works" className="hover:text-white transition-colors">
+            System
+          </a>
+          <a href="#synthesize" className="hover:text-white transition-colors">
+            Synthesize
+          </a>
+          <a href="#plans" className="hover:text-white transition-colors">
+            Access
+          </a>
         </nav>
-        <div className="flex items-center gap-4">
+
+        {/* User / CTA */}
+        <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
-              <Link href="/dashboard">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                >
-                  Dashboard
-                </motion.button>
+              <Link
+                href="/dashboard"
+                className="text-xs tracking-[0.15em] uppercase text-neutral-300 hover:text-white px-4 py-2 transition-colors"
+              >
+                Dashboard
               </Link>
               <button
                 onClick={() => signOut()}
-                className="text-gray-300 hover:text-red-400 px-4 py-2 transition-colors font-medium"
+                className="text-xs tracking-[0.15em] uppercase text-neutral-400 hover:text-red-400 px-3 py-2 transition-colors cursor-pointer"
               >
                 Sign Out
               </button>
             </>
           ) : (
             <>
-              <Link href="/auth">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-300 hover:text-blue-400 px-4 py-2 transition-colors font-medium"
-                >
-                  Sign In
-                </motion.button>
+              <Link
+                href="/auth"
+                className="text-xs tracking-[0.15em] uppercase text-neutral-300 hover:text-white px-4 py-2 transition-colors"
+              >
+                Sign In
               </Link>
-              <Link href="/convert">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition-colors font-medium"
-                >
-                  Get Started
-                </motion.button>
+              <Link
+                href="/convert"
+                className="glass-pill text-xs tracking-[0.2em] uppercase text-white font-medium px-5 py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300"
+              >
+                Start for Free
               </Link>
             </>
           )}
         </div>
-      </motion.header>
 
-      {/* Hero Section */}
-      <header className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-16 pb-12 relative z-10">
-        <motion.h1
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter"
-          style={{ fontFamily: 'var(--font-sans)' }}
+        {/* Mobile Hamburger */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden text-white/80 hover:text-white p-2 cursor-pointer"
+          aria-label="Toggle menu"
         >
-          Flashcards <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 text-glow">AI</span>
-        </motion.h1>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-          className="text-2xl md:text-3xl text-gray-300 mb-4 max-w-4xl mx-auto font-light"
-        >
-          Transform your content into smart flashcards{" "}
-          <motion.span
-            key={currentTextIndex}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="text-blue-400 font-semibold inline-block"
-          >
-            {changingTexts[currentTextIndex]}
-          </motion.span>
-        </motion.div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.6 }}
-          className="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed"
-        >
-          Upload text or YouTube videos and watch AI create professional Anki-ready flashcards in seconds.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 mb-16"
-        >
-          {user ? (
-            <Link href="/convert">
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold rounded-full px-10 py-4 text-xl shadow-xl transition-all duration-300"
-              >
-                Start Creating Flashcards
-              </motion.button>
-            </Link>
-          ) : (
-            <Link href="/auth">
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 0 40px rgba(59, 130, 246, 0.4)" }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-full px-10 py-4 text-xl shadow-2xl shadow-blue-900/20 transition-all duration-300 ring-1 ring-white/20"
-              >
-                Sign Up & Start Creating
-              </motion.button>
-            </Link>
-          )}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-            className="border-2 border-gray-600 hover:border-blue-400 text-gray-300 hover:text-blue-400 font-semibold rounded-full px-10 py-4 text-xl transition-colors duration-300"
-          >
-            Watch Demo
-          </motion.button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1 }}
-          className="flex flex-wrap justify-center gap-4 opacity-70"
-        >
-          <span className="text-gray-400 text-sm mr-4">Trusted by students at:</span>
-          {socialProof.map((name, index) => (
-            <motion.span
-              key={name}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.2 + index * 0.1 }}
-              className="bg-gray-800/60 text-gray-300 rounded-full px-4 py-1 text-xs font-semibold border border-gray-700/50"
-            >
-              {name}
-            </motion.span>
-          ))}
-        </motion.div>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {isMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            )}
+          </svg>
+        </button>
       </header>
 
-      {/* Demo Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-        className="py-20 px-6 md:px-12 relative z-10"
-      >
-        <div className="max-w-6xl mx-auto">
-          <DemoAnimation />
-        </div>
-      </motion.section>
-
-      {/* Features Section */}
-      <section id="features" className="bg-gray-800/30 backdrop-blur-xl rounded-t-3xl shadow-2xl max-w-6xl mx-auto w-full py-20 px-6 md:px-12 mb-8 border border-gray-700/30 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-5xl font-bold text-white mb-16 text-center drop-shadow-lg"
-        >
-          Powerful Features
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-
-              className="glass-card rounded-3xl p-8 hover:shadow-blue-500/10 transition-all duration-300 flex flex-col items-center text-center"
-            >
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-                className="mb-6 p-4 bg-gray-700/50 rounded-2xl"
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-[#080808]/98 backdrop-blur-2xl pt-28 px-8 flex flex-col gap-6 md:hidden"
+          >
+            <nav className="flex flex-col gap-6 text-lg tracking-[0.15em] uppercase text-neutral-300">
+              <a href="#workflow" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Workflow</a>
+              <a href="#features" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Architecture</a>
+              <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="hover:text-white">System</a>
+              <a href="#synthesize" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Synthesize</a>
+              <a href="#plans" onClick={() => setIsMenuOpen(false)} className="hover:text-white">Access</a>
+            </nav>
+            <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
+              <Link
+                href="/convert"
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full text-center py-3.5 rounded-full bg-white text-black font-semibold text-xs tracking-widest uppercase"
               >
-                {feature.icon}
-              </motion.div>
-              <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-              <p className="text-gray-300 text-lg leading-relaxed">{feature.description}</p>
+                Get Started Free
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* =========================================================================
+          HERO SECTION WITH MOUSE-SCRUBBING VIDEO BACKGROUND & MOVING 3D CHARACTER:
+          - Character's head scrubs & turns based on horizontal mouse movement
+          - Blurred intro label
+          - Typewriter text with blinking cursor
+          - Action pill buttons
+         ========================================================================= */}
+      <MouseScrubHero />
+
+      {/* =========================================================================
+          WORKFLOW SECTION:
+          - Visual UI demonstration of:
+            YouTube Video / Long Text -> Ankify AI -> Smart Flashcards -> Retention & Sync
+         ========================================================================= */}
+      <WorkflowSection />
+
+      {/* =========================================================================
+          FEATURES / ARCHITECTURE
+         ========================================================================= */}
+      <section id="features" className="py-24 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.06] relative z-10">
+        <FloatingNotebook className="hidden md:block absolute top-12 right-12" delay={0.4} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12"
+        >
+          <span className="font-jp">基盤構造</span>
+          <span>/</span>
+          <span className="font-kr">03 • 시스템 설계</span>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {features.map((feat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              className="glass-editorial rounded-2xl p-8 border border-white/[0.08] hover:border-white/20 transition-all duration-300 flex flex-col justify-between group"
+            >
+              <div>
+                <div className="flex justify-between items-center mb-8">
+                  <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/80 group-hover:border-white transition-colors">
+                    {feat.icon}
+                  </div>
+                  <span className="text-[10px] tracking-[0.25em] text-neutral-400 font-jp">
+                    {feat.jp} • {feat.kr}
+                  </span>
+                </div>
+                <h3 className="text-xl font-medium text-white mb-3 tracking-wide">{feat.title}</h3>
+                <p className="text-sm text-neutral-400 font-light leading-relaxed">{feat.description}</p>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/[0.05] flex items-center justify-between text-[10px] uppercase tracking-widest text-neutral-400">
+                <span>Core Module</span>
+                <span>0{i + 1}</span>
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section id="how-it-works" className="max-w-5xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
+      {/* =========================================================================
+          HOW IT WORKS (SYSTEM)
+         ========================================================================= */}
+      <section id="how-it-works" className="py-24 px-6 sm:px-12 max-w-7xl mx-auto border-t border-white/[0.06] relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12"
         >
-          How it Works
-        </motion.h2>
-        <ol className="relative border-l border-blue-400/30 ml-8">
-          {steps.map((step, idx) => (
-            <motion.li
+          <span className="font-jp">実行フロー</span>
+          <span>/</span>
+          <span className="font-kr">04 • 프로세스</span>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {steps.map((s, idx) => (
+            <motion.div
               key={idx}
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.3 }}
-              viewport={{ once: true }}
-              className="mb-16 ml-8"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: idx * 0.12 }}
+              className="border-t border-white/20 pt-6 flex flex-col justify-between min-h-[220px]"
             >
-              <motion.span
-                whileHover={{ scale: 1.2 }}
-                className="absolute flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full -left-6 ring-4 ring-gray-800 text-white font-bold text-xl shadow-lg"
-              >
-                {idx + 1}
-              </motion.span>
-              <motion.div
-                whileHover={{ x: 10 }}
-                className="glass-card rounded-2xl p-6"
-              >
-                <h3 className="font-bold text-white text-2xl mb-3">{step.title}</h3>
-                <p className="text-gray-300 text-lg leading-relaxed">{step.description}</p>
-              </motion.div>
-            </motion.li>
+              <div>
+                <div className="flex justify-between items-center text-xs tracking-widest text-neutral-400 mb-4">
+                  <span className="text-white font-cinzel text-lg">{s.step}</span>
+                  <span className="font-jp text-[11px] text-white/40">{s.tag}</span>
+                </div>
+                <h4 className="text-lg font-medium text-white mb-3">{s.title}</h4>
+                <p className="text-sm text-neutral-400 font-light leading-relaxed">{s.description}</p>
+              </div>
+            </motion.div>
           ))}
-        </ol>
+        </div>
       </section>
 
-      {/* Subscription Plans Section */}
+      {/* =========================================================================
+          SYNTHESIZE CARDS CTA SECTION (Image 5 Reference with Functional Action):
+          - Clicking "GENERATE FLASHCARDS" redirects to /auth (or /convert if logged in)
+         ========================================================================= */}
+      <SynthesizeSection />
+
+      {/* =========================================================================
+          PRICING / ACCESS
+         ========================================================================= */}
       <SubscriptionPlans user={user} />
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="max-w-6xl mx-auto w-full py-20 px-6 md:px-0 relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
+      {/* =========================================================================
+          TESTIMONIALS / QUOTES
+         ========================================================================= */}
+      <section className="py-24 px-6 sm:px-12 max-w-5xl mx-auto border-t border-white/[0.06] text-center relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-3xl md:text-4xl font-bold text-white mb-16 text-center drop-shadow-lg"
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-center gap-3 text-xs tracking-[0.3em] uppercase text-neutral-400 mb-12"
         >
-          What People Are Saying
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {testimonials.map((t, idx) => (
+          <span className="font-jp">証言</span>
+          <span>•</span>
+          <span className="font-kr">추천사</span>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {quotes.map((q, i) => (
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 50 }}
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: idx * 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -10, scale: 1.02 }}
-              className="glass rounded-3xl p-8 flex flex-col items-center text-center shadow-lg transition-all duration-300"
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: i * 0.15 }}
+              className="glass-editorial p-8 rounded-2xl border border-white/[0.08] text-left"
             >
-              <motion.img
-                whileHover={{ scale: 1.1 }}
-                src={t.avatar}
-                alt={t.name}
-                className="w-20 h-20 rounded-full mb-6 border-4 border-blue-400/30 object-cover shadow-lg"
-              />
-              <p className="text-gray-300 text-lg mb-6 leading-relaxed italic">"{t.text}"</p>
-              <span className="text-blue-400 text-lg font-bold">{t.name}</span>
+              <p className="text-base text-neutral-300 font-light italic mb-6 leading-relaxed">
+                "{q.quote}"
+              </p>
+              <div className="flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-medium text-white">{q.author}</div>
+                  <div className="text-neutral-400 text-[11px]">{q.affiliation}</div>
+                </div>
+                <span className="text-sm text-neutral-400 font-jp">{q.cjk}</span>
+              </div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Share Section */}
-      <section className="max-w-3xl mx-auto w-full py-16 px-6 md:px-0 text-center relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-2xl md:text-3xl font-bold text-white mb-8 drop-shadow-lg"
-        >
-          Share Flashcards AI
-        </motion.h2>
-        <div className="flex justify-center gap-8 mt-4">
-          {shareLinks.map((link, idx) => (
-            <motion.a
-              key={link.name}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.2, y: -5 }}
-              whileTap={{ scale: 0.9 }}
-              className="bg-gray-800/60 hover:bg-blue-600 text-gray-300 hover:text-white rounded-full p-4 shadow-lg transition-all duration-300 border border-gray-700/30"
-              title={`Share on ${link.name}`}
-            >
-              {link.icon}
-            </motion.a>
-          ))}
+      {/* =========================================================================
+          FOOTER: Editorial Clean
+         ========================================================================= */}
+      <footer className="w-full py-12 px-6 sm:px-12 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-neutral-400 relative z-10">
+        <div className="flex items-center gap-4">
+          <span className="font-cinzel text-white text-sm">ANKIFY</span>
+          <span>•</span>
+          <span className="font-jp text-[10px]">認知革命 • 2026</span>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="w-full py-8 text-center text-gray-400 text-sm mt-auto bg-gray-900/50 backdrop-blur-sm border-t border-gray-700/30 relative z-10">
-        &copy; {new Date().getFullYear()} Flashcards AI. All rights reserved.
+        <p className="text-neutral-400 font-light">
+          Sculpted for scholars, researchers, and creators.
+        </p>
+        <div className="flex gap-6 text-[11px] uppercase tracking-wider">
+          <a href="#" className="hover:text-white transition-colors">Twitter</a>
+          <a href="#" className="hover:text-white transition-colors">Discord</a>
+          <a href="#" className="hover:text-white transition-colors">GitHub</a>
+        </div>
       </footer>
     </div>
   );

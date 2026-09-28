@@ -317,42 +317,46 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
-      {/* Background Effects */}
-      <motion.div
-        className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-400 opacity-20 rounded-full blur-3xl"
-        animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
-        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-400 opacity-15 rounded-full blur-3xl"
-        animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
-        transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
-      />
+    <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain">
+      {/* Background Subtle Atmospheric Glows */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-white/[0.015] rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40vh] right-1/4 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[160px] pointer-events-none" />
 
       {/* Header */}
-      <header className="relative z-10 px-6 py-6 flex justify-between items-center border-b border-gray-700/30 backdrop-blur-sm bg-gray-900/50">
-        <Link href="/">
-          <motion.h1
-            whileHover={{ scale: 1.05 }}
-            className="text-2xl font-bold text-white"
-          >
-            Flashcards <span className="text-blue-400">AI</span>
-          </motion.h1>
+      <header className="relative z-10 px-6 sm:px-12 py-6 flex justify-between items-center border-b border-white/[0.06] backdrop-blur-md bg-black/40">
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <div className="w-10 h-10 rounded-full overflow-hidden border border-white/30 bg-black/60 p-0.5 shadow-[0_0_15px_rgba(255,255,255,0.15)] group-hover:border-white transition-all group-hover:scale-105 flex items-center justify-center">
+            <img
+              src="/logo_character_strict_hair_edit_3.png"
+              alt="Ankify Logo"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold tracking-[0.25em] uppercase text-white font-cinzel">
+              ANKIFY
+            </span>
+            <span className="text-[9px] tracking-[0.2em] text-neutral-400 font-jp">
+              記憶 • ダッシュボード
+            </span>
+          </div>
         </Link>
         
         <div className="flex items-center gap-4">
-          <div className="text-white">
-            Welcome, {user.email?.split('@')[0]}
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <span className="text-xs uppercase tracking-[0.15em] text-neutral-400 hidden sm:inline">
+            {user.email?.split('@')[0]}
+          </span>
+          <Link href="/convert">
+            <button className="bg-white hover:bg-neutral-200 text-black px-5 py-2.5 rounded-full transition-colors text-xs uppercase tracking-[0.15em] font-semibold shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+              + Synthesize Deck
+            </button>
+          </Link>
+          <button
             onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+            className="text-xs uppercase tracking-[0.15em] text-neutral-400 hover:text-red-400 px-4 py-2.5 rounded-full border border-white/10 hover:border-red-500/30 transition-all font-medium"
           >
             Sign Out
-          </motion.button>
+          </button>
         </div>
       </header>
 
@@ -364,61 +368,51 @@ export default function DashboardPage() {
           transition={{ duration: 0.6 }}
         >
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Your Dashboard
+          <div className="text-center mb-16">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-jp block mb-3">
+              知能化 • デック一覧
+            </span>
+            <h1 className="text-3xl sm:text-5xl font-light text-white mb-4 tracking-tight">
+              Cognitive <span className="font-serif-editorial italic font-normal text-white">Repository</span>
             </h1>
-            <p className="text-xl text-gray-300 mb-8">
-              Manage your AI-generated flashcards and study sessions
+            <p className="text-sm uppercase tracking-[0.2em] text-neutral-400 max-w-lg mx-auto font-light">
+              Synthesized memory vaults, calibrated for long-term neural retention.
             </p>
-            
-            <Link href="/convert">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full text-lg font-semibold shadow-xl transition-colors"
-              >
-                Create New Flashcards
-              </motion.button>
-            </Link>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-gray-800/80 backdrop-blur-2xl rounded-2xl p-6 border border-gray-700/50"
-            >
-              <h3 className="text-gray-400 text-sm font-medium mb-2">Total Sets</h3>
-              <p className="text-3xl font-bold text-white">{flashcardSets.length}</p>
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+            <div className="glass-editorial rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+              <h3 className="text-neutral-500 text-xs font-mono uppercase tracking-[0.2em] mb-2">Total Decks • 目録</h3>
+              <p className="text-3xl font-light text-white font-cinzel">{flashcardSets.length}</p>
+            </div>
             
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-gray-800/80 backdrop-blur-2xl rounded-2xl p-6 border border-gray-700/50"
-            >
-              <h3 className="text-gray-400 text-sm font-medium mb-2">Total Cards</h3>
-              <p className="text-3xl font-bold text-white">
-                {flashcardSets.reduce((sum, set) => sum + set.card_count, 0)}
+            <div className="glass-editorial rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+              <h3 className="text-neutral-500 text-xs font-mono uppercase tracking-[0.2em] mb-2">Total Cards • 単語数</h3>
+              <p className="text-3xl font-light text-white font-cinzel">
+                {flashcardSets.reduce((sum, set) => sum + (set.card_count || 0), 0)}
               </p>
-            </motion.div>
+            </div>
             
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-gray-800/80 backdrop-blur-2xl rounded-2xl p-6 border border-gray-700/50"
-            >
-              <h3 className="text-gray-400 text-sm font-medium mb-2">Study Streak</h3>
-              <p className="text-3xl font-bold text-white">7 days</p>
-            </motion.div>
+            <div className="glass-editorial rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+              <h3 className="text-neutral-500 text-xs font-mono uppercase tracking-[0.2em] mb-2">System Status • 状態</h3>
+              <p className="text-xl font-light text-white font-mono flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Active Synchronized
+              </p>
+            </div>
           </div>
 
           {/* Flashcard Sets */}
           <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Your Flashcard Sets</h2>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-xl font-medium tracking-wide text-white">Your Flashcard Decks</h2>
+              <span className="text-xs uppercase tracking-[0.2em] text-neutral-500 font-mono">Vault Storage</span>
+            </div>
             
             {loadingSets ? (
-              <div className="text-center py-12">
-                <div className="text-gray-400">Loading your flashcard sets...</div>
+              <div className="text-center py-16">
+                <div className="text-neutral-400 text-xs uppercase tracking-[0.2em]">Accessing neural index...</div>
               </div>
             ) : flashcardSets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -428,15 +422,17 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gray-800/80 backdrop-blur-2xl rounded-2xl p-6 border border-gray-700/50 group"
+                    className="glass-editorial rounded-2xl p-6 border border-white/10 hover:border-white/30 transition-all group flex flex-col justify-between"
                   >
-                    <h3 className="text-xl font-semibold text-white mb-2">{set.title}</h3>
-                    <p className="text-gray-400 mb-4 line-clamp-2">{set.description}</p>
-                    <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                      <span>{set.card_count} cards</span>
-                      <span>{new Date(set.created_at).toLocaleDateString()}</span>
+                    <div>
+                      <h3 className="text-lg font-medium text-white mb-2 tracking-wide group-hover:text-neutral-200 transition-colors">{set.title}</h3>
+                      <p className="text-neutral-400 text-xs font-light mb-6 line-clamp-2">{set.description || "Synthesized via Ankify AI"}</p>
                     </div>
+                    <div className="pt-4 border-t border-white/5">
+                      <div className="flex justify-between items-center text-xs text-neutral-500 mb-4 font-mono">
+                        <span>{set.card_count || (set.flashcards ? set.flashcards.length : 0)} Cards</span>
+                        <span>{new Date(set.created_at).toLocaleDateString()}</span>
+                      </div>
                     
                     {/* Action Buttons */}
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -444,33 +440,25 @@ export default function DashboardPage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => openFlashcardSet(set)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                        className="flex-1 bg-white hover:bg-neutral-200 text-black py-2.5 px-4 rounded-full transition-colors text-xs uppercase tracking-[0.15em] font-semibold"
                       >
-                        Study
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors text-sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                        </svg>
+                        Study Deck
                       </motion.button>
                     </div>
-                  </motion.div>
+                  </div>
+                </motion.div>
                 ))}
               </div>
             ) : (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                className="text-center py-20 border border-white/5 rounded-3xl bg-white/[0.01]"
               >
-                <div className="text-gray-400 mb-4">No flashcard sets yet</div>
+                <div className="text-neutral-500 mb-4 text-xs uppercase tracking-[0.2em]">No synthesized decks in memory vault</div>
                 <Link href="/convert">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full transition-colors">
-                    Create Your First Set
+                  <button className="bg-white hover:bg-neutral-200 text-black px-8 py-3.5 rounded-full transition-all text-xs uppercase tracking-[0.2em] font-medium shadow-[0_0_25px_rgba(255,255,255,0.15)]">
+                    Create Your First Deck
                   </button>
                 </Link>
               </motion.div>
