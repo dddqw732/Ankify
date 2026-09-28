@@ -250,7 +250,7 @@ function MouseTrackingCharacter() {
           playsInline
           className="block"
           style={{
-            width: 'clamp(200px, 22vw, 320px)',
+            width: 'clamp(260px, 30vw, 420px)',
             height: 'auto',
             objectFit: 'contain',
             // slight drop shadow for depth
