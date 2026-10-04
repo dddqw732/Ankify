@@ -77,7 +77,7 @@ export function MouseScrubHero() {
   const seekingRef = useRef(false);
 
   const { displayed, done } = useTypewriter({
-    text: "Glad you stopped in. Good taste tends to find us. Now, what are we building?",
+    text: "Turn any YouTube video or text into Anki flashcards in seconds — powered by AI.",
   });
 
   const [pillsVisible, setPillsVisible] = useState(false);
@@ -178,26 +178,26 @@ export function MouseScrubHero() {
 
       {/* 4. Transparent Background 3D Character Video - Cleanly sized and situated on the right side */}
       <div
-        className="absolute right-4 sm:right-12 md:right-16 lg:right-24 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none"
+        className="absolute right-0 sm:right-4 md:right-8 lg:right-12 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none"
         style={{ zIndex: 5 }}
       >
         {/* Soft Ambient Radiance behind the transparent character */}
         <div
-          className="absolute w-[260px] h-[260px] sm:w-[340px] sm:h-[340px] md:w-[400px] md:h-[400px] rounded-full pointer-events-none"
+          className="absolute w-[360px] h-[360px] sm:w-[480px] sm:h-[480px] md:w-[560px] md:h-[560px] rounded-full pointer-events-none"
           style={{
             background:
               "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 45%, transparent 70%)",
-            filter: "blur(50px)",
+            filter: "blur(60px)",
           }}
         />
 
-        {/* The video element with transparent background (no white box, no watermark) */}
+        {/* The video element with transparent background - bigger for clearer animations */}
         <video
           ref={videoRef}
           muted
           playsInline
           preload="auto"
-          className="relative w-[240px] sm:w-[320px] md:w-[380px] lg:w-[440px] aspect-square object-contain drop-shadow-[0_20px_45px_rgba(255,255,255,0.15)] filter contrast-105"
+          className="relative w-[340px] sm:w-[460px] md:w-[560px] lg:w-[640px] aspect-square object-contain drop-shadow-[0_20px_60px_rgba(255,255,255,0.18)] filter contrast-105"
         >
           <source src="/video/character_transparent.webm" type="video/webm" />
           <source src="/video/kling_animate.mp4" type="video/mp4" />
@@ -216,9 +216,9 @@ export function MouseScrubHero() {
             filter: "blur(4px)",
           }}
         >
-          Hey there, meet A.R.I.A,
+          Study smarter, not harder —
           <br />
-          Ankify's Adaptive Neural Recall Agent
+          your AI-powered Anki deck builder
         </p>
 
         {/* Typewriter text with blinking cursor */}

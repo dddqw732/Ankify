@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -19,11 +19,14 @@ export default function AuthPage() {
   const router = useRouter()
   const { user } = useAuth()
 
-  // Redirect if already authenticated
-  if (user) {
-    router.push('/dashboard')
-    return null
-  }
+  // Redirect if already authenticated — use effect to avoid setState-during-render
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
+    }
+  }, [user, router])
+
+  if (user) return null
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,13 +108,6 @@ export default function AuthPage() {
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md z-10 flex flex-col gap-4"
       >
-        {/* ⚠️ Service Status Banner */}
-        <div className="p-3 rounded-2xl bg-amber-950/50 border border-amber-500/30 text-amber-300 text-xs text-center leading-relaxed backdrop-blur-md">
-          <strong className="block mb-0.5 text-amber-200 uppercase tracking-wider text-[10px]">⚠ Auth Service Offline</strong>
-          Your Supabase project is paused or inactive. 
-          Go to <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100">supabase.com/dashboard</a> and resume the project to enable sign-in.
-        </div>
-
         <div className="glass-editorial rounded-3xl p-8 sm:p-10 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl relative">
           {/* Header & Logo */}
           <div className="text-center mb-8 flex flex-col items-center">

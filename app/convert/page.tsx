@@ -270,14 +270,16 @@ export default function ConvertPage() {
           {/* Warnings/Errors */}
           <AnimatePresence>
             {mode === "youtube" && !loading && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gray-400 text-sm text-center bg-white/5 rounded-lg p-3 border border-white/5">
+              <motion.div key="youtube-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-gray-400 text-sm text-center bg-white/5 rounded-lg p-3 border border-white/5">
                 ℹ️ Supports videos with captions/transcripts enabled.
               </motion.div>
             )}
             {error && (
               <motion.div
+                key="error-msg"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
                 className="bg-red-500/20 text-red-200 rounded-xl p-4 text-sm text-center border border-red-500/30"
               >
                 {error}

@@ -49,48 +49,57 @@ export async function POST(req: NextRequest) {
 
   // 2. Check Usage Limits (if user exists)
   if (user) {
-    // Check subscription
-    const { data: subscription } = await supabase
-      .from('user_subscriptions')
-      .select('plan_name, status')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .single();
-
-    const isPro = subscription && (subscription.plan_name === 'Pro' || subscription.plan_name === 'Pro Plan');
-
-    if (!isPro) {
-      // Check usage count for Free tier
-      const { data: usage } = await supabase
-        .from('user_usage')
-        .select('usage_count')
+    try {
+      // Check subscription
+      const { data: subscription, error: subError } = await supabase
+        .from('user_subscriptions')
+        .select('plan_name, status')
         .eq('user_id', user.id)
-        .eq('feature_name', 'flashcard_generation')
+        .eq('status', 'active')
         .single();
 
-      const currentUsage = usage?.usage_count || 0;
+      // If table doesn't exist yet (e.g. fresh Supabase project), treat as free tier
+      const isPro = !subError && subscription && (subscription.plan_name === 'Pro' || subscription.plan_name === 'Pro Plan');
 
-      // Free limit: 3 generations
-      if (currentUsage >= 3) {
-        return NextResponse.json({
-          error: "You have reached the free limit of 3 generations. Please upgrade to continue used Ankify."
-        }, { status: 403 });
+      if (!isPro) {
+        // Check usage count for Free tier
+        const { data: usage, error: usageSelectError } = await supabase
+          .from('user_usage')
+          .select('usage_count')
+          .eq('user_id', user.id)
+          .eq('feature_name', 'flashcard_generation')
+          .single();
+
+        // If user_usage table is missing, skip limit check (fail open)
+        if (!usageSelectError || usageSelectError.code === 'PGRST116') {
+          const currentUsage = usage?.usage_count || 0;
+
+          // Free limit: 3 generations
+          if (currentUsage >= 3) {
+            return NextResponse.json({
+              error: "You have reached the free limit of 3 generations. Please upgrade to continue used Ankify."
+            }, { status: 403 });
+          }
+
+          // Increment usage
+          const newUsage = currentUsage + 1;
+          const { error: usageError } = await supabase
+            .from('user_usage')
+            .upsert({
+              user_id: user.id,
+              feature_name: 'flashcard_generation',
+              usage_count: newUsage,
+              last_used_at: new Date().toISOString()
+            }, { onConflict: 'user_id, feature_name' });
+
+          if (usageError) {
+            console.error('Error updating usage:', usageError);
+          }
+        }
       }
-
-      // Increment usage
-      const newUsage = currentUsage + 1;
-      const { error: usageError } = await supabase
-        .from('user_usage')
-        .upsert({
-          user_id: user.id,
-          feature_name: 'flashcard_generation',
-          usage_count: newUsage,
-          last_used_at: new Date().toISOString()
-        }, { onConflict: 'user_id, feature_name' });
-
-      if (usageError) {
-        console.error('Error updating usage:', usageError);
-      }
+    } catch (checkErr) {
+      // If subscription check fails entirely, proceed without blocking the user
+      console.error('Subscription/usage check error (non-fatal):', checkErr);
     }
   } else {
     // Enforce authentication for all requests to ensure usage tracking
@@ -226,8 +235,13 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("OpenAI error:", err);
     let friendlyError = err.message || "OpenAI API error";
-    if (err.status === 429 || (err.message && err.message.includes("quota") || err.message.includes("credits"))) {
-      friendlyError = "OpenAI Error (429): Your OpenAI account has 0 remaining credits or has exceeded its quota. Please add balance at https://platform.openai.com/settings/organization/billing or provide a new key.";
+    if (
+      err.status === 429 ||
+      err.code === 'credit_balance_exhausted' ||
+      err.type === 'insufficient_quota' ||
+      (err.message && (err.message.includes("quota") || err.message.includes("credits") || err.message.includes("credit_balance_exhausted")))
+    ) {
+      friendlyError = "OpenAI Error: Your OpenAI account credit balance is exhausted (insufficient quota). Please add credits to your balance at https://platform.openai.com/settings/organization/billing or use a funded API key.";
     }
     return NextResponse.json({ error: friendlyError }, { status: 500 });
   }
