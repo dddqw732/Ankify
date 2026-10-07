@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Eclipse &amp; Light — Anime Character Showcase</title>
+
+  <!-- Preconnects -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES & RESET
+       ============================================================ */
+    :root {
+      --fg: #ffffff;
+      --fg-soft: rgba(255, 255, 255, .72);
+      --fg-faint: rgba(255, 255, 255, .45);
+      --shade: #050505; /* Deep black background for dark manga atmosphere */
+      --rule: rgba(255, 255, 255, .16);
+      --ease: cubic-bezier(.22, .61, .36, 1);
+      --pill-bg: #ffffff;
+      --pill-fg: #050505;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--shade);
+      color: var(--fg);
+      font-family: 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       PRELOADER / BOOT
+       ============================================================ */
+    .boot {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: var(--shade);
+      color: var(--fg);
+      transition: opacity .7s var(--ease), visibility .7s;
+    }
+
+    .boot.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .boot p {
+      font-size: 12.5px;
+      letter-spacing: .08em;
+      color: var(--fg-faint);
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar {
+      width: 150px;
+      height: 1px;
+      background: var(--rule);
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: var(--fg);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform .08s linear;
+    }
+
+    /* ============================================================
+       FIXED BACKGROUND VIDEO LAYER
+       ============================================================ */
+    .stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--shade);
+    }
+
+    .stage video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      transform: translate(-50%, -50%) scale(1.02);
+      object-fit: cover;
+      filter: contrast(1.1) brightness(0.95);
+      will-change: transform;
+    }
+
+    .veil {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to bottom, rgba(5,5,5,.82) 0%, rgba(5,5,5,.20) 22%, rgba(5,5,5,.20) 78%, rgba(5,5,5,.86) 100%),
+        radial-gradient(100% 80% at 50% 48%, rgba(5,5,5,0) 0%, rgba(5,5,5,.50) 100%),
+        rgba(5,5,5,.15);
+    }
+
+    .grain {
+      position: absolute;
+      inset: -50%;
+      opacity: .18;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>");
+    }
+
+    /* ============================================================
+       SCROLL PROGRESS METER (HAIRLINE)
+       ============================================================ */
+    .meter {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 50;
+      height: 2px;
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      background: var(--fg);
+      opacity: .8;
+      will-change: transform;
+    }
+
+    /* ============================================================
+       CHROME (HEADER) & FOOTER
+       ============================================================ */
+    .chrome {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: max(14px, calc(env(safe-area-inset-top, 0px) + 12px)) clamp(16px, 3.4vw, 44px) 14px;
+      background: linear-gradient(to bottom, rgba(5,5,5,.92) 0%, rgba(5,5,5,.60) 72%, rgba(5,5,5,0) 100%);
+    }
+
+    .mark {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 15px;
+      letter-spacing: -.012em;
+      color: var(--fg);
+      font-weight: 500;
+      min-width: 0;
+      flex-shrink: 1;
+    }
+
+    .mark-star {
+      opacity: .85;
+      color: #fff;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: clamp(14px, 2.4vw, 32px);
+      flex-shrink: 0;
+    }
+
+    .nav a:not(.pill) {
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 14.5px;
+      letter-spacing: -.008em;
+      opacity: .80;
+      transition: opacity .3s var(--ease);
+    }
+
+    .nav a:not(.pill):hover {
+      opacity: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 21px;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      color: var(--pill-fg);
+      font-size: 14.5px;
+      font-weight: 500;
+      letter-spacing: -.008em;
+      text-decoration: none;
+      white-space: nowrap;
+      opacity: 1;
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 1px 0 rgba(0,0,0,.10) inset;
+      -webkit-text-fill-color: var(--pill-fg);
+      transition: transform .4s var(--ease), background .3s var(--ease), color .3s var(--ease);
+      cursor: pointer;
+    }
+
+    .nav .pill {
+      color: #050505;
+      -webkit-text-fill-color: #050505;
+    }
+
+    .pill:hover,
+    .pill:focus-visible {
+      transform: translateY(-2px);
+      background: #e5e5e5;
+      color: #000;
+      -webkit-text-fill-color: #000;
+    }
+
+    .foot {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: center;
+      padding: 14px clamp(16px, 4vw, 24px) max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+      font-size: 12px;
+      line-height: 1.45;
+      letter-spacing: .04em;
+      color: var(--fg-faint);
+      text-align: center;
+      pointer-events: none;
+      text-transform: uppercase;
+      background: linear-gradient(to top, rgba(5,5,5,.92) 0%, rgba(5,5,5,.60) 72%, rgba(5,5,5,0) 100%);
+    }
+
+    /* ============================================================
+       PANEL LAYER
+       ============================================================ */
+    .panels {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: max(104px, calc(env(safe-area-inset-top, 0px) + 88px)) clamp(20px, 5vw, 60px) max(96px, calc(env(safe-area-inset-bottom, 0px) + 80px));
+      opacity: 0;
+      will-change: opacity, transform;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+      font-size: 12.5px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--fg-soft);
+      margin-bottom: clamp(16px, 2vw, 22px);
+      max-width: min(46ch, 100%);
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: 500;
+      font-size: clamp(34px, 7.1vw, 96px);
+      line-height: .98;
+      letter-spacing: -.036em;
+      max-width: 16ch;
+      text-wrap: balance;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.8);
+    }
+
+    .sub {
+      margin-top: clamp(18px, 2.2vw, 28px);
+      font-size: clamp(15px, 1.28vw, 19px);
+      line-height: 1.5;
+      letter-spacing: -.008em;
+      color: var(--fg-soft);
+      max-width: min(46ch, 100%);
+      text-wrap: pretty;
+    }
+
+    .cta {
+      margin-top: clamp(28px, 3.4vw, 44px);
+      pointer-events: auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .cta .pill {
+      height: 48px;
+      padding: 0 27px;
+      font-size: 15px;
+      max-width: min(100%, 320px);
+    }
+
+    /* ============================================================
+       SCROLL CONTROLLER TRACK
+       ============================================================ */
+    .track {
+      position: relative;
+      z-index: 1;
+      height: 560vh;
+      min-height: 3200px;
+    }
+
+    /* ============================================================
+       RESPONSIVE BREAKPOINTS
+       ============================================================ */
+    @media (max-width: 900px) {
+      .veil {
+        background:
+          linear-gradient(to bottom, rgba(5,5,5,.88) 0%, rgba(5,5,5,.25) 24%, rgba(5,5,5,.25) 76%, rgba(5,5,5,.90) 100%),
+          radial-gradient(100% 80% at 50% 48%, rgba(5,5,5,0) 0%, rgba(5,5,5,.60) 100%),
+          rgba(5,5,5,.24);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .nav a:not(.pill) {
+        display: none;
+      }
+      .mark {
+        font-size: 14px;
+      }
+      .nav .pill {
+        height: 38px;
+        padding: 0 16px;
+        font-size: 13.5px;
+      }
+      h1 {
+        max-width: 12ch;
+        font-size: clamp(30px, 9.8vw, 52px);
+      }
+      .sub {
+        font-size: 15px;
+        max-width: 34ch;
+      }
+      .panel {
+        padding: max(92px, calc(env(safe-area-inset-top, 0px) + 76px)) 18px max(88px, calc(env(safe-area-inset-bottom, 0px) + 72px));
+      }
+      .foot {
+        font-size: 11px;
+        max-width: 34ch;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .mark-star {
+        display: none;
+      }
+      .nav .pill {
+        height: 36px;
+        padding: 0 14px;
+        font-size: 13px;
+      }
+      h1 {
+        max-width: 11ch;
+        font-size: clamp(28px, 10.5vw, 40px);
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: .04em;
+        max-width: 28ch;
+      }
+      .cta .pill {
+        width: 100%;
+        max-width: 280px;
+        height: 44px;
+        padding: 0 20px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-height: 520px) and (orientation: landscape) {
+      .panel {
+        padding: max(72px, calc(env(safe-area-inset-top, 0px) + 56px)) 24px max(64px, calc(env(safe-area-inset-bottom, 0px) + 48px));
+      }
+      h1 {
+        font-size: clamp(28px, 8vh, 44px);
+      }
+      .sub {
+        margin-top: 12px;
+        font-size: 14px;
+      }
+      .cta {
+        margin-top: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. PRELOADER -->
+  <div class="boot" id="boot">
+    <div class="bar"><i id="bootBar"></i></div>
+    <p id="bootPct">LOADING 0%</p>
+  </div>
+
+  <!-- 2. FIXED BACKGROUND VIDEO STAGE -->
+  <div class="stage">
+    <video id="clip" muted playsinline preload="auto" disablepictureinpicture></video>
+    <div class="veil"></div>
+    <div class="grain"></div>
+  </div>
+
+  <!-- 3. PROGRESS HAIRLINE METER -->
+  <i class="meter" id="meter"></i>
+
+  <!-- 4. CHROME HEADER -->
+  <header class="chrome">
+    <div class="mark">
+      <span class="mark-star" aria-hidden="true">&#10038;</span>&nbsp;ECLIPSE // PROJECT
+    </div>
+    <nav class="nav">
+      <a href="#lore">Lore</a>
+      <a href="#gallery">Stills</a>
+      <a class="pill" href="#watch">Watch Full</a>
+    </nav>
+  </header>
+
+  <!-- 5. EDITORIAL PANELS -->
+  <main class="panels">
+    <!-- Panel 1 -->
+    <section class="panel" data-panel id="lore">
+      <div class="eyebrow">PHASE I <span>&middot;</span> FROM THE VOID</div>
+      <h1>Spark in the Darkness.</h1>
+      <p class="sub">Positioned in the shadows, a singular force awakens as energy gathers at the fingertips.</p>
+      <div class="cta">
+        <a class="pill" href="#lore">Explore Lore</a>
+      </div>
+    </section>
+
+    <!-- Panel 2 -->
+    <section class="panel" data-panel id="gallery">
+      <div class="eyebrow">PHASE II <span>&middot;</span> FLUID MOTION</div>
+      <h1>Orbital Shift.</h1>
+      <p class="sub">Sweeping leftwards through the pitch-black void with unbroken, continuous grace.</p>
+      <div class="cta">
+        <a class="pill" href="#gallery">View Stills</a>
+      </div>
+    </section>
+
+    <!-- Panel 3 -->
+    <section class="panel" data-panel id="watch">
+      <div class="eyebrow">PHASE III <span>&middot;</span> THE REVEAL</div>
+      <h1>Blinding Illumination.</h1>
+      <p class="sub">Facing the viewer head-on as a radiant starburst explodes with intense chiaroscuro contrast.</p>
+      <div class="cta">
+        <a class="pill" href="#watch">Replay Motion</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- 6. FOOTER -->
+  <footer class="foot">
+    CHARACTER DESIGN &amp; MOTION &nbsp;&middot;&nbsp; ALL RIGHTS RESERVED
+  </footer>
+
+  <!-- 7. SCROLL TRACK (CONTROLLER HEIGHT) -->
+  <div class="track"></div>
+
+  <!-- 8. JAVASCRIPT IIFE CONTROLLER -->
+  <script>
+    (function () {
+      "use strict";
+
+      // ============================================================
+      // VIDEO SOURCE CONFIGURATION
+      // Note: Using an all-intra / keyframe-rich video export makes
+      // scrub-seeking instant and smooth across all browsers.
+      // ============================================================
+      var VIDEO_URL = "assests/chibi_star_orbit_video_left_silent_final.mp4";
+
+      // DOM Elements
+      var clip = document.getElementById("clip");
+      var boot = document.getElementById("boot");
+      var bootBar = document.getElementById("bootBar");
+      var bootPct = document.getElementById("bootPct");
+      var meter = document.getElementById("meter");
+      var panels = [].slice.call(document.querySelectorAll("[data-panel]"));
+
+      // Cue timing table [enterStart, enterEnd, leaveStart, leaveEnd]
+      var CUES = [
+        [0.00, 0.00, 0.15, 0.23],
+        [0.35, 0.43, 0.57, 0.65],
+        [0.77, 0.85, 1.10, 1.20]
+      ];
+      var DRIFT = 22; // px of counter-scroll travel per panel
+
+      // Helper functions
+      function clamp(v, a, b) {
+        return Math.max(a, Math.min(b, v));
+      }
+
+      function smooth(t) {
+        return t * t * (3 - 2 * t);
+      }
+
+      function ramp(p, a, b) {
+        if (b <= a) return p >= b ? 1 : 0;
+        return smooth(clamp((p - a) / (b - a), 0, 1));
+      }
+
+      // State
+      var progress = 0;
+      var seekTo = 0;
+      var seekAt = 0;
+      var duration = 0;
+      var ready = false;
+      var started = false;
+      var attached = false;
+
+      // Scroll reader
+      function readScroll() {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        progress = max > 0 ? clamp(window.pageYOffset / max, 0, 1) : 0;
+        if (duration) {
+          seekTo = progress * duration;
+        }
+      }
+
+      // Paint visual layers
+      function paint() {
+        if (meter) {
+          meter.style.transform = "scaleX(" + progress + ")";
+        }
+
+        for (var i = 0; i < panels.length; i++) {
+          var c = CUES[i];
+          var el = panels[i];
+          if (!c || !el) continue;
+
+          var enter = ramp(progress, c[0], c[1]);
+          var leave = ramp(progress, c[2], c[3]);
+          var o = enter * (1 - leave);
+          var y = (1 - enter) * DRIFT - leave * DRIFT;
+
+          el.style.opacity = o;
+          el.style.transform = "translate3d(0," + y.toFixed(2) + "px,0)";
+          el.style.pointerEvents = o > 0.6 ? "auto" : "none";
+        }
+      }
+
+      // RequestAnimationFrame render loop
+      function frame() {
+        if (ready && duration) {
+          var gap = seekTo - seekAt;
+          if (Math.abs(gap) > 0.0008) {
+            seekAt += gap * 0.115; // easing factor for smooth scrubbing
+            if (clip.readyState >= 2 && !clip.seeking) {
+              try {
+                clip.currentTime = seekAt;
+              } catch (e) {}
+            }
+          }
+        }
+        paint();
+        requestAnimationFrame(frame);
+      }
+
+      // Preloader progress display
+      function setProgress(f) {
+        if (bootBar) {
+          bootBar.style.transform = "scaleX(" + f + ")";
+        }
+        if (bootPct) {
+          bootPct.textContent = "LOADING " + Math.round(f * 100) + "%";
+        }
+      }
+
+      // Start application playback & interactions
+      function start() {
+        if (started) return;
+        started = true;
+        ready = true;
+        if (boot) {
+          boot.classList.add("done");
+        }
+        readScroll();
+        seekAt = seekTo;
+      }
+
+      // Attach video source and bind lifecycle events
+      function attach(src) {
+        if (attached) return;
+        attached = true;
+
+        clip.addEventListener("loadedmetadata", function () {
+          duration = clip.duration || 0;
+          clip.pause();
+          readScroll();
+          seekAt = seekTo;
+          try {
+            clip.currentTime = seekAt;
+          } catch (e) {}
+        });
+
+        clip.addEventListener("loadeddata", start);
+        clip.addEventListener("canplaythrough", start);
+        clip.addEventListener("error", start);
+
+        clip.src = src;
+        clip.load();
+
+        // Safety fallback if video buffering events are delayed
+        setTimeout(start, 12000);
+      }
+
+      // Preload video as Blob for instantaneous random-access frame scrubbing
+      function preload() {
+        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var bail = setTimeout(function () {
+          if (!attached) {
+            if (controller) controller.abort();
+            setProgress(1);
+            attach(VIDEO_URL);
+          }
+        }, 15000);
+
+        if (!window.fetch || !window.ReadableStream) {
+          setProgress(1);
+          attach(VIDEO_URL);
+          return;
+        }
+
+        fetch(VIDEO_URL, controller ? { signal: controller.signal } : {})
+          .then(function (res) {
+            if (!res.ok || !res.body) {
+              throw new Error("Network response was not ok");
+            }
+            var contentLength = res.headers.get("content-length");
+            var total = contentLength ? parseInt(contentLength, 10) : 0;
+            var loaded = 0;
+            var reader = res.body.getReader();
+            var chunks = [];
+
+            function pump() {
+              return reader.read().then(function (result) {
+                if (result.done) {
+                  return new Blob(chunks, { type: "video/mp4" });
+                }
+                chunks.push(result.value);
+                loaded += result.value.length;
+                if (total > 0) {
+                  setProgress(Math.min(loaded / total, 1));
+                }
+                return pump();
+              });
+            }
+            return pump();
+          })
+          .then(function (blob) {
+            clearTimeout(bail);
+            setProgress(1);
+            attach(URL.createObjectURL(blob));
+          })
+          .catch(function () {
+            clearTimeout(bail);
+            setProgress(1);
+            attach(VIDEO_URL);
+          });
+      }
+
+      // iOS / Mobile audio & play gesture unlock
+      function unlock() {
+        var p = clip.play();
+        if (p && p.then) {
+          p.then(function () { clip.pause(); }).catch(function () {});
+        } else {
+          clip.pause();
+        }
+      }
+
+      ["touchstart", "pointerdown", "wheel", "keydown"].forEach(function (ev) {
+        window.addEventListener(ev, unlock, { once: true, passive: true });
+      });
+
+      // Smooth scroll navigation anchors
+      document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+        anchor.addEventListener('click', function (e) {
+          var target = this.getAttribute('href');
+          var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          if (maxScroll <= 0) return;
+
+          if (target === '#lore') {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (target === '#gallery') {
+            e.preventDefault();
+            window.scrollTo({ top: maxScroll * 0.49, behavior: 'smooth' });
+          } else if (target === '#watch') {
+            e.preventDefault();
+            window.scrollTo({ top: maxScroll * 0.88, behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Event Listeners
+      window.addEventListener("scroll", readScroll, { passive: true });
+      window.addEventListener("resize", readScroll);
+
+      // Initial execution
+      readScroll();
+      paint();
+      preload();
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

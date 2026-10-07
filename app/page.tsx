@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { PLANS } from "@/lib/plans";
 import { MouseScrubHero } from "./components/MouseScrubHero";
+import { CharacterScrollShowcase } from "./components/CharacterScrollShowcase";
 import { WorkflowSection } from "./components/WorkflowSection";
 import { SynthesizeSection } from "./components/SynthesizeSection";
 import {
@@ -227,7 +228,7 @@ export default function Home() {
   const { user, signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain overflow-x-hidden">
+    <div className="min-h-screen bg-[#080808] text-[#f3f3f3] relative selection:bg-white selection:text-black bg-grain overflow-x-clip">
       {/* Top Navigation Bar */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 sm:px-12 py-5 flex items-center justify-between backdrop-blur-md bg-black/60 border-b border-white/[0.06]">
         {/* Brand Logo & Character Head (Direct, without circle, slightly larger) */}
@@ -360,6 +361,14 @@ export default function Home() {
           - Action pill buttons
          ========================================================================= */}
       <MouseScrubHero />
+
+      {/* =========================================================================
+          ECLIPSE CHARACTER SCROLL-SCRUBBED ANIME/MANGA SHOWCASE:
+          - Video frame-by-frame scrubbing driven by smooth scroll progress
+          - High-contrast Chiaroscuro anime dark atmosphere
+          - Editorial typography cross-fade panels
+         ========================================================================= */}
+      <CharacterScrollShowcase />
 
       {/* =========================================================================
           WORKFLOW SECTION:
